@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#1e40af">
+<meta name="theme-color" content="#0f172a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Ore Elettra">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Ore Elettra</title>
-<link rel="manifest" href="./manifest.json">
-<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="manifest" href="/Ore/manifest.json">
+<link rel="apple-touch-icon" href="/Ore/icon-192.png">
 <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
@@ -50,8 +50,9 @@
           <p id="userBadge">—</p>
         </div>
       </div>
-      <div style="display:flex;gap:8px;align-items:center">
+      <div class="header-actions">
         <span class="badge-foglio" id="foglioAttivoLabel">—</span>
+        <button id="btnInstall" class="btn-install" style="display:none" onclick="installaApp()" title="Installa app">📲 Installa</button>
         <button class="btn-logout" onclick="faiLogout()" title="Logout">🚪</button>
       </div>
     </div>
