@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1e40af">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Ore Elettra">
+<title>Ore Elettra</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+<!-- Schermata Login -->
+<div id="loginScreen" class="login-screen">
+  <div class="login-box">
+    <div class="login-logo">📋</div>
+    <h1>Ore Elettra</h1>
+    <p class="login-sub">Accedi con le tue credenziali</p>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="login_email" placeholder="nome@esempio.com">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="login_password" placeholder="••••••••">
+    </div>
+    <div id="login_error" class="login-error" style="display:none"></div>
+    <button class="btn btn-primary btn-block" id="btnLogin" onclick="faiLogin()">🔓 Accedi</button>
+  </div>
+</div>
+
+<!-- App -->
+<div id="appScreen" style="display:none">
+  <header>
+    <div class="header-content">
+      <div class="brand">
+        <div class="brand-logo">📋</div>
+        <div class="brand-text">
+          <h1>Ore Elettra</h1>
+          <p id="userBadge">—</p>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="faiLogout()">🚪</button>
+    </div>
+  </header>
+  
+  <div class="toolbar">
+    <select id="selettoreMese" onchange="caricaDashboard()"></select>
+    <button class="btn-icon primary" onclick="apriForm()">➕</button>
+  </div>
+  
+  <div class="container">
+    <div class="kpi-grid" id="kpi"></div>
+    <div class="card">
+      <div class="card-header">
+        <h3>📋 Voci del mese</h3>
+        <span class="count" id="countVoci">0</span>
+      </div>
+      <div class="card-body" id="tabellaVoci"></div>
+    </div>
+  </div>
+  
+  <div class="email-bar">
+    <button onclick="inviaEmail()">✉️ Invia le tue ore via Email</button>
+  </div>
+</div>
+
+<!-- Modal Form (semplificato) -->
+<div class="modal-overlay" id="modalForm">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>➕ Nuova voce</h2>
+      <button class="modal-close" onclick="chiudiForm()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Data *</label>
+        <input type="date" id="f_data">
+      </div>
+      <div class="form-group">
+        <label>Dipendente *</label>
+        <input type="text" id="f_dipendente">
+      </div>
+      <div class="form-group">
+        <label>Ore ordinarie</label>
+        <input type="number" id="f_ordinario" value="8" step="0.5">
+      </div>
+      <!-- Altri campi... -->
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="chiudiForm()">Annulla</button>
+      <button class="btn btn-primary" onclick="salva()">💾 Salva</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/script.js"></script>
+</body>
+</html>
