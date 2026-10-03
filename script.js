@@ -1,5 +1,5 @@
 // ============ CONFIGURAZIONE ============
-const API_URL = "https://script.google.com/macros/s/IL_TUO_DEPLOYMENT_ID/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbx_FuxRsRlXwuNryKtaLxcTD5THZV7qDjBmUfyaPKpho-YvZPKKN9TxCaUf-wfNAuFsUQ/exec";
 let STATO = {
   token: localStorage.getItem("ore_token"),
   user: null,
