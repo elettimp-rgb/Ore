@@ -1,6 +1,5 @@
 /************************************************************
  * CONFIGURAZIONE
- * API_URL punta al Worker Cloudflare (proxy verso Apps Script)
  ************************************************************/
 const API_URL = "https://ore.elettimp.workers.dev";
 
@@ -45,12 +44,8 @@ function switchInner(name, el) {
   });
 }
 
-
-
-
-
 /************************************************************
- * API CALL — GET con query string (funziona su tutti i device)
+ * API CALL — GET con query string
  ************************************************************/
 async function callAPI(action, params) {
   params = params || {};
@@ -59,40 +54,19 @@ async function callAPI(action, params) {
   queryParams.append("action", action);
   queryParams.append("payload", JSON.stringify(params));
 
-  const url = API_URL + "?" + queryParams.toString();
-  console.log("=== CHIAMATA API ===");
-  console.log("URL:", url.substring(0, 200));
+  const response = await fetch(API_URL + "?" + queryParams.toString(), {
+    method: "GET",
+    redirect: "follow"
+  });
 
+  const text = await response.text();
   try {
-    const response = await fetch(url, {
-      method: "GET",
-      redirect: "follow"
-    });
-
-    const text = await response.text();
-
-    console.log("Status:", response.status);
-    console.log("URL finale:", response.url);
-    console.log("Content-Type:", response.headers.get("content-type"));
-    console.log("Lunghezza:", text.length);
-    console.log("Risposta:", text.substring(0, 500));
-
-    try {
-      return JSON.parse(text);
-    } catch (e) {
-      console.error("JSON PARSE FALLITO:", e.message);
-      // Mostra cosa è arrivato invece di JSON
-      return { ok: false, msg: "Server ha risposto: " + text.substring(0, 200) };
-    }
-  } catch (err) {
-    console.error("FETCH ERROR:", err);
-    return { ok: false, msg: "Errore fetch: " + err.message };
+    return JSON.parse(text);
+  } catch (e) {
+    console.error("Risposta non JSON:", text.substring(0, 500));
+    return { ok: false, msg: "Risposta non valida dal server" };
   }
 }
-
-
-
-
 
 /************************************************************
  * SESSIONE
@@ -964,4 +938,40 @@ if ("serviceWorker" in navigator) {
       console.warn("SW non registrato:", err);
     });
   });
+}
+
+/************************************************************
+ * PULSANTE INSTALLA APP (PWA)
+ ************************************************************/
+let deferredPrompt = null;
+
+window.addEventListener("beforeinstallprompt", function(e) {
+  e.preventDefault();
+  deferredPrompt = e;
+  const btn = document.getElementById("btnInstall");
+  if (btn) btn.style.display = "inline-flex";
+});
+
+async function installaApp() {
+  if (!deferredPrompt) {
+    alert("L'app è già installata oppure il browser non supporta l'installazione automatica.\n\nSu iPhone/iPad: apri il sito in Safari, tocca Condividi (⬆️) e scegli 'Aggiungi a schermata Home'.");
+    return;
+  }
+  deferredPrompt.prompt();
+  const choiceResult = await deferredPrompt.userChoice;
+  console.log("Scelta utente:", choiceResult.outcome);
+  deferredPrompt = null;
+  const btn = document.getElementById("btnInstall");
+  if (btn) btn.style.display = "none";
+}
+
+window.addEventListener("appinstalled", function() {
+  const btn = document.getElementById("btnInstall");
+  if (btn) btn.style.display = "none";
+  deferredPrompt = null;
+});
+
+if (window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone) {
+  const btn = document.getElementById("btnInstall");
+  if (btn) btn.style.display = "none";
 }
