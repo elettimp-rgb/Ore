@@ -46,27 +46,44 @@ function switchInner(name, el) {
 }
 
 /************************************************************
- * API CALL
+ * API CALL — JSONP (bypassa CORS)
  ************************************************************/
-async function callAPI(action, params) {
+function callAPI(action, params) {
   params = params || {};
-  const formData = new FormData();
-  formData.append("action", action);
-  formData.append("payload", JSON.stringify(params));
+  return new Promise(function(resolve, reject) {
+    const callbackName = "jsonp_cb_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
 
-  const response = await fetch(API_URL, {
-    method: "POST",
-    body: formData,
-    redirect: "follow"
+    const timeout = setTimeout(function() {
+      cleanup();
+      reject(new Error("Timeout: il server non risponde"));
+    }, 30000);
+
+    const script = document.createElement("script");
+
+    window[callbackName] = function(data) {
+      cleanup();
+      resolve(data);
+    };
+
+    function cleanup() {
+      clearTimeout(timeout);
+      if (script.parentNode) script.parentNode.removeChild(script);
+      try { delete window[callbackName]; } catch (e) { window[callbackName] = undefined; }
+    }
+
+    const queryParams = new URLSearchParams();
+    queryParams.append("action", action);
+    queryParams.append("callback", callbackName);
+    queryParams.append("payload", JSON.stringify(params));
+
+    script.src = API_URL + "?" + queryParams.toString();
+    script.onerror = function() {
+      cleanup();
+      reject(new Error("Errore di rete"));
+    };
+
+    document.body.appendChild(script);
   });
-
-  const text = await response.text();
-  try {
-    return JSON.parse(text);
-  } catch (e) {
-    console.error("Risposta non JSON:", text.substring(0, 500));
-    return { ok: false, msg: "Risposta non valida dal server" };
-  }
 }
 
 /************************************************************
@@ -931,7 +948,7 @@ document.getElementById("login_email").addEventListener("keypress", function(e) 
 });
 
 /************************************************************
- * REGISTRAZIONE SERVICE WORKER (PWA)
+ * SERVICE WORKER (PWA)
  ************************************************************/
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", function() {
