@@ -449,7 +449,7 @@ function renderTabellaVoci(res) {
 }
 
 /************************************************************
- * DIPENDENTI / COMMESSE
+ * RIEPILOGO DIPENDENTI (con tutte le colonne numeriche)
  ************************************************************/
 function renderDipendenti(res) {
   if (!res.perDipendente.length) {
@@ -457,49 +457,154 @@ function renderDipendenti(res) {
       '<div class="empty"><div class="empty-icon">👥</div><div>Nessun dato</div></div>';
     return;
   }
+
+  const dip = res.perDipendente;
+
+  // Totali in fondo
+  const tot = dip.reduce(function(acc, d) {
+    acc.ordinario += d.ordinario;
+    acc.straordFeriali += d.straordFeriali;
+    acc.straordFestivi += d.straordFestivi;
+    acc.totale += d.totale;
+    acc.oreViaggio += d.oreViaggio;
+    acc.km += d.km;
+    acc.spese += d.spese;
+    acc.ferie += d.ferie;
+    acc.malattia += d.malattia;
+    acc.voci += d.voci;
+    return acc;
+  }, { ordinario: 0, straordFeriali: 0, straordFestivi: 0, totale: 0,
+       oreViaggio: 0, km: 0, spese: 0, ferie: 0, malattia: 0, voci: 0 });
+
   document.getElementById("tblDipendenti").innerHTML =
-    '<table class="agg"><thead><tr>' +
-    '<th>Dipendente</th><th style="text-align:right">Ore</th>' +
-    '<th style="text-align:right">Km</th><th style="text-align:right">Spese</th>' +
-    '<th style="text-align:right">Ferie</th><th style="text-align:right">Malattia</th>' +
-    '</tr></thead><tbody>' +
-    res.perDipendente.map(function(d) {
+    '<div class="tabella-wrap">' +
+    '<table class="tabella tabella-riepilogo">' +
+    '<thead><tr>' +
+      '<th>Dipendente</th>' +
+      '<th style="text-align:right">Ordinarie</th>' +
+      '<th style="text-align:right">Str. Feriale</th>' +
+      '<th style="text-align:right">Str. Festivo</th>' +
+      '<th style="text-align:right">Totale</th>' +
+      '<th style="text-align:right">Ore viaggio</th>' +
+      '<th style="text-align:right">Km</th>' +
+      '<th style="text-align:right">Spese (€)</th>' +
+      '<th style="text-align:right">Ferie</th>' +
+      '<th style="text-align:right">Malattia</th>' +
+      '<th style="text-align:right">Voci</th>' +
+    '</tr></thead>' +
+    '<tbody>' +
+    dip.map(function(d) {
       return '<tr>' +
         '<td class="dip-name">' + esc(d.dipendente) + '</td>' +
-        '<td class="num">' + d.ore + '</td>' +
+        '<td class="num">' + d.ordinario + '</td>' +
+        '<td class="num">' + d.straordFeriali + '</td>' +
+        '<td class="num">' + d.straordFestivi + '</td>' +
+        '<td class="num" style="font-weight:800;color:#0891b2">' + d.totale + '</td>' +
+        '<td class="num">' + d.oreViaggio + '</td>' +
         '<td class="num">' + d.km + '</td>' +
-        '<td class="num">' + d.spese.toFixed(2) + ' €</td>' +
+        '<td class="num">' + d.spese.toFixed(2) + '</td>' +
         '<td class="num">' + d.ferie + '</td>' +
         '<td class="num">' + d.malattia + '</td>' +
+        '<td class="num">' + d.voci + '</td>' +
         '</tr>';
     }).join("") +
-    '</tbody></table>';
+    '</tbody>' +
+    '<tfoot><tr>' +
+      '<td style="font-weight:800">TOTALE</td>' +
+      '<td class="num">' + tot.ordinario + '</td>' +
+      '<td class="num">' + tot.straordFeriali + '</td>' +
+      '<td class="num">' + tot.straordFestivi + '</td>' +
+      '<td class="num" style="font-weight:800;color:#0891b2">' + tot.totale + '</td>' +
+      '<td class="num">' + tot.oreViaggio + '</td>' +
+      '<td class="num">' + tot.km + '</td>' +
+      '<td class="num">' + tot.spese.toFixed(2) + '</td>' +
+      '<td class="num">' + tot.ferie + '</td>' +
+      '<td class="num">' + tot.malattia + '</td>' +
+      '<td class="num">' + tot.voci + '</td>' +
+    '</tr></tfoot>' +
+    '</table>' +
+    '</div>' +
+    '<div class="scroll-hint">👈 scorri lateralmente per vedere tutte le colonne</div>';
 }
 
+/************************************************************
+ * RIEPILOGO COMMESSE (con tutte le colonne numeriche)
+ ************************************************************/
 function renderCommesse(res) {
   if (!res.perCommessa.length) {
     document.getElementById("tblCommesse").innerHTML =
       '<div class="empty"><div class="empty-icon">🏷️</div><div>Nessun dato</div></div>';
     return;
   }
+
+  const comm = res.perCommessa;
+
+  const tot = comm.reduce(function(acc, c) {
+    acc.ordinario += c.ordinario;
+    acc.straordFeriali += c.straordFeriali;
+    acc.straordFestivi += c.straordFestivi;
+    acc.totale += c.totale;
+    acc.oreViaggio += c.oreViaggio;
+    acc.km += c.km;
+    acc.spese += c.spese;
+    acc.ferie += c.ferie;
+    acc.malattia += c.malattia;
+    acc.voci += c.voci;
+    return acc;
+  }, { ordinario: 0, straordFeriali: 0, straordFestivi: 0, totale: 0,
+       oreViaggio: 0, km: 0, spese: 0, ferie: 0, malattia: 0, voci: 0 });
+
   document.getElementById("tblCommesse").innerHTML =
-    '<table class="agg"><thead><tr>' +
-    '<th>Commessa</th><th style="text-align:right">Ore</th>' +
-    '<th style="text-align:right">Km</th><th style="text-align:right">Spese</th>' +
-    '<th style="text-align:right">Voci</th>' +
-    '</tr></thead><tbody>' +
-    res.perCommessa.map(function(c) {
-      const extra = [c.committente, c.cantiere].filter(Boolean).join(" • ");
+    '<div class="tabella-wrap">' +
+    '<table class="tabella tabella-riepilogo">' +
+    '<thead><tr>' +
+      '<th>Commessa</th>' +
+      '<th>Committente</th>' +
+      '<th style="text-align:right">Ordinarie</th>' +
+      '<th style="text-align:right">Str. Feriale</th>' +
+      '<th style="text-align:right">Str. Festivo</th>' +
+      '<th style="text-align:right">Totale</th>' +
+      '<th style="text-align:right">Ore viaggio</th>' +
+      '<th style="text-align:right">Km</th>' +
+      '<th style="text-align:right">Spese (€)</th>' +
+      '<th style="text-align:right">Ferie</th>' +
+      '<th style="text-align:right">Malattia</th>' +
+      '<th style="text-align:right">Voci</th>' +
+    '</tr></thead>' +
+    '<tbody>' +
+    comm.map(function(c) {
       return '<tr>' +
-        '<td><div style="font-weight:700;color:#1e40af">#' + esc(c.commessa) + '</div>' +
-        (extra ? '<div class="comm-extra">' + esc(extra) + '</div>' : '') + '</td>' +
-        '<td class="num">' + c.ore + '</td>' +
+        '<td><strong style="color:#0891b2">#' + esc(c.commessa) + '</strong></td>' +
+        '<td>' + esc(c.committente || "—") + (c.cantiere ? ' <span class="comm-extra">' + esc(c.cantiere) + '</span>' : '') + '</td>' +
+        '<td class="num">' + c.ordinario + '</td>' +
+        '<td class="num">' + c.straordFeriali + '</td>' +
+        '<td class="num">' + c.straordFestivi + '</td>' +
+        '<td class="num" style="font-weight:800;color:#0891b2">' + c.totale + '</td>' +
+        '<td class="num">' + c.oreViaggio + '</td>' +
         '<td class="num">' + c.km + '</td>' +
-        '<td class="num">' + c.spese.toFixed(2) + ' €</td>' +
+        '<td class="num">' + c.spese.toFixed(2) + '</td>' +
+        '<td class="num">' + c.ferie + '</td>' +
+        '<td class="num">' + c.malattia + '</td>' +
         '<td class="num">' + c.voci + '</td>' +
         '</tr>';
     }).join("") +
-    '</tbody></table>';
+    '</tbody>' +
+    '<tfoot><tr>' +
+      '<td colspan="2" style="font-weight:800">TOTALE</td>' +
+      '<td class="num">' + tot.ordinario + '</td>' +
+      '<td class="num">' + tot.straordFeriali + '</td>' +
+      '<td class="num">' + tot.straordFestivi + '</td>' +
+      '<td class="num" style="font-weight:800;color:#0891b2">' + tot.totale + '</td>' +
+      '<td class="num">' + tot.oreViaggio + '</td>' +
+      '<td class="num">' + tot.km + '</td>' +
+      '<td class="num">' + tot.spese.toFixed(2) + '</td>' +
+      '<td class="num">' + tot.ferie + '</td>' +
+      '<td class="num">' + tot.malattia + '</td>' +
+      '<td class="num">' + tot.voci + '</td>' +
+    '</tr></tfoot>' +
+    '</table>' +
+    '</div>' +
+    '<div class="scroll-hint">👈 scorri lateralmente per vedere tutte le colonne</div>';
 }
 
 /************************************************************
