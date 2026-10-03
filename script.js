@@ -46,6 +46,9 @@ function switchInner(name, el) {
 }
 
 
+
+
+
 /************************************************************
  * API CALL — GET con query string (funziona su tutti i device)
  ************************************************************/
@@ -56,17 +59,34 @@ async function callAPI(action, params) {
   queryParams.append("action", action);
   queryParams.append("payload", JSON.stringify(params));
 
-  const response = await fetch(API_URL + "?" + queryParams.toString(), {
-    method: "GET",
-    redirect: "follow"
-  });
+  const url = API_URL + "?" + queryParams.toString();
+  console.log("=== CHIAMATA API ===");
+  console.log("URL:", url.substring(0, 200));
 
-  const text = await response.text();
   try {
-    return JSON.parse(text);
-  } catch (e) {
-    console.error("Risposta non JSON:", text.substring(0, 500));
-    return { ok: false, msg: "Risposta non valida dal server" };
+    const response = await fetch(url, {
+      method: "GET",
+      redirect: "follow"
+    });
+
+    const text = await response.text();
+
+    console.log("Status:", response.status);
+    console.log("URL finale:", response.url);
+    console.log("Content-Type:", response.headers.get("content-type"));
+    console.log("Lunghezza:", text.length);
+    console.log("Risposta:", text.substring(0, 500));
+
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      console.error("JSON PARSE FALLITO:", e.message);
+      // Mostra cosa è arrivato invece di JSON
+      return { ok: false, msg: "Server ha risposto: " + text.substring(0, 200) };
+    }
+  } catch (err) {
+    console.error("FETCH ERROR:", err);
+    return { ok: false, msg: "Errore fetch: " + err.message };
   }
 }
 
