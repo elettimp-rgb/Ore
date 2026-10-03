@@ -368,7 +368,7 @@ body.is-admin .admin-only { display: inline-flex; }
  * ============================================================ */
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
   gap: 14px;
   margin-bottom: 24px;
 }
