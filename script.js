@@ -960,7 +960,7 @@ document.getElementById("login_email").addEventListener("keypress", function(e) 
  ************************************************************/
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", function() {
-    navigator.serviceWorker.register("./sw.js").catch(function(err) {
+    navigator.serviceWorker.register("/Ore/sw.js").catch(function(err) {
       console.warn("SW non registrato:", err);
     });
   });
