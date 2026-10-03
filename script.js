@@ -296,15 +296,16 @@ async function caricaDashboard() {
 
     const r = res.riepilogo;
     document.getElementById("kpi").innerHTML = [
-      kpiCard("Ore totali", r.totaleOre, ""),
-      kpiCard("Ordinarie", r.ordinarie, "green"),
-      kpiCard("Straordinarie", r.straordFeriali + r.straordFestivi, "orange"),
-      kpiCard("Km", r.km, "purple"),
-      kpiCard("Spese", r.spese.toFixed(2), "slate", "€"),
-      kpiCard("Ferie", r.ferie, "red"),
-      kpiCard("Malattia", r.malattia, "red"),
-      kpiCard("Voci", r.numRighe, "")
-    ].join("");
+  kpiCard("Ore totali", r.totaleOre, ""),
+  kpiCard("Ordinarie", r.ordinarie, "green"),
+  kpiCard("Str. Feriale", r.straordFeriali, "orange"),
+  kpiCard("Str. Festivo", r.straordFestivi, "orange"),
+  kpiCard("Km", r.km, "purple"),
+  kpiCard("Spese", r.spese.toFixed(2), "slate", "€"),
+  kpiCard("Ferie", r.ferie, "red"),
+  kpiCard("Malattia", r.malattia, "red"),
+  kpiCard("Voci", r.numRighe, "")
+].join("");
 
     renderTabellaVoci(res);
     renderDipendenti(res);
