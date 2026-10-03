@@ -1109,3 +1109,73 @@ table.agg .comm-extra {
     display: none;
   }
 }
+
+/* ============================================================
+ * TABELLE RIEPILOGO (dipendenti, commesse)
+ * ============================================================ */
+.tabella-riepilogo {
+  min-width: 1100px;
+  width: 100%;
+}
+
+.tabella-riepilogo thead th {
+  padding: 12px 14px;
+  font-size: .68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: #64748b;
+  background: #f8fafc;
+  border-bottom: 2px solid #e2e8f0;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.tabella-riepilogo tbody td {
+  padding: 13px 14px;
+  font-size: .82rem;
+  border-bottom: 1px solid #f1f5f9;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.tabella-riepilogo tbody tr:hover td {
+  background: #f8fafc;
+}
+
+.tabella-riepilogo tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.tabella-riepilogo .dip-name {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.tabella-riepilogo .num {
+  text-align: right;
+  font-weight: 600;
+}
+
+.tabella-riepilogo .comm-extra {
+  font-size: .72rem;
+  color: #94a3b8;
+  font-weight: 400;
+  display: block;
+  margin-top: 2px;
+}
+
+.tabella-riepilogo tfoot td {
+  padding: 14px;
+  font-size: .82rem;
+  font-weight: 800;
+  background: #f1f5f9;
+  border-top: 2px solid #cbd5e1;
+  color: #0f172a;
+  white-space: nowrap;
+}
+
+.tabella-riepilogo tfoot .num {
+  text-align: right;
+  color: #0f172a;
+}
