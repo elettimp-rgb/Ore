@@ -2,25 +2,14 @@
   "name": "Ore Elettra",
   "short_name": "Ore",
   "description": "Gestione ore e commesse",
-  "start_url": "./index.html",
-  "scope": "./",
+  "start_url": "/Ore/index.html",
+  "scope": "/Ore/",
   "display": "standalone",
-  "orientation": "portrait",
   "background_color": "#1e40af",
   "theme_color": "#1e40af",
   "lang": "it",
   "icons": [
-    {
-      "src": "./icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "./icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
+    { "src": "/Ore/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/Ore/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ]
 }
