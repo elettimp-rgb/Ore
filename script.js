@@ -2,7 +2,7 @@
  * CONFIGURAZIONE
  * ⚠️ SOSTITUISCI L'URL QUI SOTTO CON IL TUO URL /exec
  ************************************************************/
-const API_URL = "https://script.google.com/macros/s/AKfycbx_FuxRsRlXwuNryKtaLxcTD5THZV7qDjBmUfyaPKpho-YvZPKKN9TxCaUf-wfNAuFsUQ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbx_FuxRsRlXwuNryKtaLxcTD5THZV7qDjBmUfyaPKpho-YvZPKKN9TxCaUf-wfNAuFsUQ/exec?authuser=elettimp@gmail.com";
 
 let STATO = {
   token: localStorage.getItem("ore_token") || null,
