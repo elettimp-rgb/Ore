@@ -1,6 +1,6 @@
 /************************************************************
  * CONFIGURAZIONE
- * ⚠️ SOSTITUISCI L'URL QUI SOTTO CON IL TUO URL /exec
+ * API_URL punta al Worker Cloudflare (proxy verso Apps Script)
  ************************************************************/
 const API_URL = "https://ore.elettimp.workers.dev";
 
@@ -46,44 +46,28 @@ function switchInner(name, el) {
 }
 
 /************************************************************
- * API CALL — JSONP (bypassa CORS)
+ * API CALL — fetch standard (via Cloudflare Worker)
  ************************************************************/
-function callAPI(action, params) {
+async function callAPI(action, params) {
   params = params || {};
-  return new Promise(function(resolve, reject) {
-    const callbackName = "jsonp_cb_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
 
-    const timeout = setTimeout(function() {
-      cleanup();
-      reject(new Error("Timeout: il server non risponde"));
-    }, 30000);
+  const formData = new FormData();
+  formData.append("action", action);
+  formData.append("payload", JSON.stringify(params));
 
-    const script = document.createElement("script");
-
-    window[callbackName] = function(data) {
-      cleanup();
-      resolve(data);
-    };
-
-    function cleanup() {
-      clearTimeout(timeout);
-      if (script.parentNode) script.parentNode.removeChild(script);
-      try { delete window[callbackName]; } catch (e) { window[callbackName] = undefined; }
-    }
-
-    const queryParams = new URLSearchParams();
-    queryParams.append("action", action);
-    queryParams.append("callback", callbackName);
-    queryParams.append("payload", JSON.stringify(params));
-
-    script.src = API_URL + "?" + queryParams.toString();
-    script.onerror = function() {
-      cleanup();
-      reject(new Error("Errore di rete"));
-    };
-
-    document.body.appendChild(script);
+  const response = await fetch(API_URL, {
+    method: "POST",
+    body: formData,
+    redirect: "follow"
   });
+
+  const text = await response.text();
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    console.error("Risposta non JSON:", text.substring(0, 500));
+    return { ok: false, msg: "Risposta non valida dal server" };
+  }
 }
 
 /************************************************************
