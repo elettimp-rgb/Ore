@@ -45,19 +45,19 @@ function switchInner(name, el) {
   });
 }
 
+
 /************************************************************
- * API CALL — fetch standard (via Cloudflare Worker)
+ * API CALL — GET con query string (funziona su tutti i device)
  ************************************************************/
 async function callAPI(action, params) {
   params = params || {};
 
-  const formData = new FormData();
-  formData.append("action", action);
-  formData.append("payload", JSON.stringify(params));
+  const queryParams = new URLSearchParams();
+  queryParams.append("action", action);
+  queryParams.append("payload", JSON.stringify(params));
 
-  const response = await fetch(API_URL, {
-    method: "POST",
-    body: formData,
+  const response = await fetch(API_URL + "?" + queryParams.toString(), {
+    method: "GET",
     redirect: "follow"
   });
 
@@ -69,6 +69,10 @@ async function callAPI(action, params) {
     return { ok: false, msg: "Risposta non valida dal server" };
   }
 }
+
+
+
+
 
 /************************************************************
  * SESSIONE
