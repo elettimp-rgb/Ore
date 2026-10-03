@@ -304,7 +304,7 @@ async function caricaDashboard() {
   kpiCard("Spese", r.spese.toFixed(2), "slate", "€"),
   kpiCard("Ferie", r.ferie, "red"),
   kpiCard("Malattia", r.malattia, "red"),
-  kpiCard("Voci", r.numRighe, "")
+  kpiCard("Giorni", r.numRighe, "")
 ].join("");
 
     renderTabellaVoci(res);
