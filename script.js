@@ -184,6 +184,34 @@ function mostraApp() {
   caricaMesiDisponibili();
 }
 
+/**
+ * Gestisce la scelta "aggiungi nuovo dipendente" nella select.
+ */
+function onCambiaDipendente() {
+  const sel = document.getElementById("f_dipendente_select");
+  if (!sel) return;
+
+  if (sel.value === "__nuovo__") {
+    const nuovoNome = prompt("Inserisci il nome del nuovo dipendente (es. Mario Rossi):");
+    if (nuovoNome && nuovoNome.trim()) {
+      const nome = nuovoNome.trim();
+      if (!STATO.dipendenti.includes(nome)) {
+        STATO.dipendenti.push(nome);
+        STATO.dipendenti.sort();
+      }
+      const opt = document.createElement("option");
+      opt.value = nome;
+      opt.textContent = nome;
+      const optNuovo = Array.from(sel.options).find(function(o) { return o.value === "__nuovo__"; });
+      if (optNuovo) sel.insertBefore(opt, optNuovo);
+      else sel.appendChild(opt);
+      sel.value = nome;
+    } else {
+      sel.value = "";
+    }
+  }
+}
+
 /************************************************************
  * INIT
  ************************************************************/
@@ -690,10 +718,36 @@ function apriForm() {
   resetForm();
   if (STATO.foglioAttivo) setVal("f_foglio", STATO.foglioAttivo);
   setVal("f_data", todayISO());
-  if (STATO.user && STATO.user.nome) setVal("f_dipendente", STATO.user.nome);
+
+  const inputDip = document.getElementById("f_dipendente");
+  const selectDip = document.getElementById("f_dipendente_select");
+
+  if (isAdmin()) {
+    inputDip.style.display = "none";
+    inputDip.removeAttribute("required");
+    selectDip.style.display = "block";
+    selectDip.setAttribute("required", "required");
+
+    let opts = ['<option value="">— scegli un dipendente —</option>'];
+    (STATO.dipendenti || []).forEach(function(d) {
+      opts.push('<option value="' + esc(d) + '">' + esc(d) + '</option>');
+    });
+    opts.push('<option value="__nuovo__">➕ Aggiungi nuovo dipendente…</option>');
+    selectDip.innerHTML = opts.join("");
+    selectDip.value = "";
+  } else {
+    inputDip.style.display = "block";
+    inputDip.setAttribute("required", "required");
+    selectDip.style.display = "none";
+    selectDip.removeAttribute("required");
+    if (STATO.user && STATO.user.nome) setVal("f_dipendente", STATO.user.nome);
+  }
+
   document.getElementById("modalForm").classList.add("open");
   document.body.style.overflow = "hidden";
 }
+
+
 function chiudiForm() {
   document.getElementById("modalForm").classList.remove("open");
   document.body.style.overflow = "";
@@ -721,7 +775,22 @@ async function modificaVoce(rowNum) {
 
     setVal("f_foglio", nomeFoglio);
     setVal("f_data", d.data);
-    setVal("f_dipendente", d.dipendente);
+    
+    if (isAdmin()) {
+  const sel = document.getElementById("f_dipendente_select");
+  const exists = Array.from(sel.options).some(function(o) { return o.value === d.dipendente; });
+  if (!exists && d.dipendente) {
+    const opt = document.createElement("option");
+    opt.value = d.dipendente;
+    opt.textContent = d.dipendente;
+    const optNuovo = Array.from(sel.options).find(function(o) { return o.value === "__nuovo__"; });
+    if (optNuovo) sel.insertBefore(opt, optNuovo);
+    else sel.appendChild(opt);
+  }
+  sel.value = d.dipendente;
+} else {
+  setVal("f_dipendente", d.dipendente);
+}
     setVal("f_ordinario", d.ordinario);
     setVal("f_straordF", d.straordFeriali);
     setVal("f_straordFest", d.straordFestivi);
@@ -755,9 +824,19 @@ async function modificaVoce(rowNum) {
 
 async function salva() {
   const data = val("f_data");
-  const dip = val("f_dipendente").trim();
+
+  let dip = "";
+  if (isAdmin()) {
+    dip = val("f_dipendente_select").trim();
+    if (dip === "__nuovo__") dip = "";
+  } else {
+    dip = val("f_dipendente").trim();
+  }
+
   if (!data) { toast("Inserisci la data", "err"); return; }
   if (!dip) { toast("Inserisci il dipendente", "err"); return; }
+
+  
 
   let foglioDest = val("f_foglio") || val("selettoreMese") || STATO.foglioAttivo;
   if (!foglioDest) { toast("Nessun foglio selezionato", "err"); return; }
@@ -923,6 +1002,10 @@ function resetForm() {
   ["f_ordinario","f_straordF","f_straordFest","f_oreViaggio","f_km","f_spese",
    "f_commessa","f_committente","f_cantiere","f_note","f_ferie","f_malattia",
    "f_dipendente"].forEach(function(id) { setVal(id, ""); });
+
+  const selDip = document.getElementById("f_dipendente_select");
+  if (selDip) selDip.value = "";
+
   setVal("f_ordinario", 8);
   STATO.editRowNum = null;
 }
