@@ -1164,3 +1164,164 @@ table.tabella .num { text-align: right; }
     transition-duration: .01ms !important;
   }
 }
+
+
+/* ============================================================
+ * PULSANTE TOGGLE TEMA
+ * ============================================================ */
+.btn-theme {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.08);
+  color: #94a3b8;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .15s cubic-bezier(.4,0,.2,1);
+  flex-shrink: 0;
+}
+.btn-theme:hover {
+  background: rgba(6, 182, 212, .15);
+  border-color: rgba(6, 182, 212, .4);
+  color: #22d3ee;
+  transform: rotate(15deg);
+}
+
+/* ============================================================
+ * TEMA CHIARO
+ * Applicato quando body ha classe .light-theme
+ * ============================================================ */
+body.light-theme {
+  --bg: #f1f5f9;
+  --bg-alt: #e2e8f0;
+  --surface: #ffffff;
+  --surface-2: #f8fafc;
+  --surface-3: #e2e8f0;
+
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+
+  --text: #0f172a;
+  --text-muted: #475569;
+  --text-subtle: #94a3b8;
+
+  --accent: #0891b2;
+  --accent-light: #06b6d4;
+  --accent-dark: #0e7490;
+  --accent-glow: rgba(8, 145, 178, .12);
+
+  --success: #059669;
+  --success-glow: rgba(5, 150, 105, .12);
+  --danger: #dc2626;
+  --danger-glow: rgba(220, 38, 38, .1);
+  --warning: #d97706;
+  --warning-glow: rgba(217, 119, 6, .12);
+  --purple: #7c3aed;
+  --purple-glow: rgba(124, 58, 237, .12);
+
+  --shadow-xs: 0 1px 2px rgba(15,23,42,.04);
+  --shadow-sm: 0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+  --shadow: 0 4px 6px -1px rgba(15,23,42,.06), 0 2px 4px -1px rgba(15,23,42,.04);
+  --shadow-md: 0 10px 15px -3px rgba(15,23,42,.08), 0 4px 6px -2px rgba(15,23,42,.05);
+  --shadow-lg: 0 20px 25px -5px rgba(15,23,42,.1), 0 8px 10px -6px rgba(15,23,42,.06);
+  --shadow-xl: 0 25px 50px -12px rgba(15,23,42,.25);
+}
+
+/* Header nel tema chiaro */
+body.light-theme header {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(15,23,42,.06);
+}
+body.light-theme .brand-text h1 { color: #0f172a; }
+body.light-theme .brand-text p { color: #64748b; }
+body.light-theme .badge-foglio {
+  background: rgba(8, 145, 178, .1);
+  border-color: rgba(8, 145, 178, .3);
+  color: #0e7490;
+}
+body.light-theme .btn-theme {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+  color: #64748b;
+}
+body.light-theme .btn-theme:hover {
+  background: rgba(8, 145, 178, .1);
+  border-color: rgba(8, 145, 178, .3);
+  color: #0891b2;
+}
+body.light-theme .btn-logout {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+  color: #64748b;
+}
+body.light-theme .btn-logout:hover {
+  background: #fee2e2;
+  border-color: #fecaca;
+  color: #dc2626;
+}
+
+/* Email bar nel tema chiaro */
+body.light-theme .email-bar {
+  background: rgba(255, 255, 255, .95);
+  border-top-color: #e2e8f0;
+}
+
+/* Login screen nel tema chiaro */
+body.light-theme .login-screen {
+  background:
+    radial-gradient(ellipse at top left, rgba(8, 145, 178, .12), transparent 55%),
+    radial-gradient(ellipse at bottom right, rgba(124, 58, 237, .08), transparent 55%),
+    linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 50%, #f8fafc 100%);
+}
+body.light-theme .login-box {
+  background: rgba(255, 255, 255, .95);
+  border-color: rgba(8, 145, 178, .15);
+  box-shadow: 0 20px 50px -12px rgba(15,23,42,.15), 0 0 0 1px rgba(8, 145, 178, .08);
+}
+body.light-theme .login-box h1 { color: #0f172a; }
+body.light-theme .login-sub { color: #64748b; }
+body.light-theme .login-hint { color: #94a3b8; }
+
+/* Modale nel tema chiaro */
+body.light-theme .modal-overlay {
+  background: rgba(15, 23, 42, .4);
+}
+body.light-theme .modal {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+
+/* Toast nel tema chiaro */
+body.light-theme .toast {
+  background: #0f172a;
+  color: white;
+}
+
+/* Tabelle nel tema chiaro */
+body.light-theme table.tabella thead th {
+  background: #f8fafc;
+  color: #64748b;
+}
+body.light-theme table.tabella tbody td {
+  border-color: #f1f5f9;
+}
+body.light-theme table.tabella tbody tr:hover td {
+  background: #f8fafc;
+}
+body.light-theme table.tabella tfoot td {
+  background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+  color: #0e7490;
+  border-top-color: #0891b2;
+}
+
+body.light-theme .tabella-riepilogo thead th {
+  background: #f8fafc;
+}
+body.light-theme .tabella-riepilogo tfoot td {
+  background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+  color: #0e7490;
+}
