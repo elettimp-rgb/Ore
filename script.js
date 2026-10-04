@@ -50,7 +50,7 @@ function switchInner(name, el) {
 }
 
 /************************************************************
- * API CALL — GET con query string
+ * API CALL — GET con query string (ANTI-CACHE)
  ************************************************************/
 async function callAPI(action, params) {
   params = params || {};
@@ -58,10 +58,13 @@ async function callAPI(action, params) {
   const queryParams = new URLSearchParams();
   queryParams.append("action", action);
   queryParams.append("payload", JSON.stringify(params));
+  // Anti-cache: parametro univoco ad ogni chiamata
+  queryParams.append("_t", Date.now() + "_" + Math.random().toString(36).substring(7));
 
   const response = await fetch(API_URL + "?" + queryParams.toString(), {
     method: "GET",
-    redirect: "follow"
+    redirect: "follow",
+    cache: "no-store"
   });
 
   const text = await response.text();
@@ -269,6 +272,8 @@ async function caricaDashboard() {
   const nomeFoglio = val("selettoreMese") || STATO.foglioAttivo || null;
   const filtro = getFiltroCorrente();
 
+  console.log("[caricaDashboard] foglio=" + nomeFoglio);
+
   document.getElementById("kpi").innerHTML =
     '<div class="kpi" style="grid-column:1/-1;text-align:center"><div class="label">Caricamento</div><div class="value">…</div></div>';
 
@@ -289,6 +294,8 @@ async function caricaDashboard() {
       mostraErrore(res.error);
       return;
     }
+
+    console.log("[caricaDashboard] ricevute " + (res.rows ? res.rows.length : 0) + " righe");
 
     STATO.user = res.user;
     STATO.foglioAttivo = res.foglio;
@@ -319,6 +326,7 @@ async function caricaDashboard() {
     popolaSelectCommesse();
     aggiornaSelectFoglioForm(res.foglio);
   } catch (err) {
+    console.error("[caricaDashboard] errore:", err);
     mostraErrore("Errore: " + err.message);
   }
 }
@@ -666,18 +674,11 @@ function chiudiForm() {
   document.body.style.overflow = "";
 }
 
-
-
-
-
-
 async function modificaVoce(rowNum) {
   STATO.editRowNum = rowNum;
   document.getElementById("modalFormTitle").textContent = "Modifica voce";
 
-  // Prende il foglio da più fonti possibili
   let nomeFoglio = val("selettoreMese") || STATO.foglioAttivo || "";
-
   if (!nomeFoglio) {
     toast("Nessun foglio selezionato", "err");
     return;
@@ -686,12 +687,10 @@ async function modificaVoce(rowNum) {
   try {
     const d = await callAPI("getRigaDettaglio", {
       token: STATO.token,
-      rowNum: Number(rowNum),   // ← forza numero
+      rowNum: Number(rowNum),
       foglio: nomeFoglio
     });
-
     if (!d) {
-      // Debug: mostra cosa ha risposto il server
       console.error("getRigaDettaglio ha restituito null. rowNum:", rowNum, "foglio:", nomeFoglio);
       toast("Voce non trovata (riga " + rowNum + ")", "err");
       STATO.editRowNum = null;
@@ -733,22 +732,20 @@ async function modificaVoce(rowNum) {
   }
 }
 
-
-
-
-
-
-
-
-
 async function salva() {
   const data = val("f_data");
   const dip = val("f_dipendente").trim();
   if (!data) { toast("Inserisci la data", "err"); return; }
   if (!dip) { toast("Inserisci il dipendente", "err"); return; }
 
+  let foglioDest = val("f_foglio") || val("selettoreMese") || STATO.foglioAttivo;
+  if (!foglioDest) {
+    toast("Nessun foglio selezionato", "err");
+    return;
+  }
+
   const dati = {
-    foglio: val("f_foglio"),
+    foglio: foglioDest,
     data: data,
     dipendente: dip,
     ordinario: numVal("f_ordinario"),
@@ -771,11 +768,12 @@ async function salva() {
   btn.innerHTML = '<span class="spinner"></span>Salvataggio...';
 
   const isEdit = STATO.editRowNum !== null;
+  const rowNumSalvato = STATO.editRowNum;
 
   try {
     let res;
     if (isEdit) {
-      res = await callAPI("modificaRiga", { token: STATO.token, rowNum: STATO.editRowNum, dati: dati });
+      res = await callAPI("modificaRiga", { token: STATO.token, rowNum: rowNumSalvato, dati: dati });
     } else {
       res = await callAPI("aggiungiRiga", { token: STATO.token, dati: dati });
     }
@@ -784,13 +782,24 @@ async function salva() {
       toast("✅ " + res.msg, "ok");
       chiudiForm();
 
+      const kpiEl = document.getElementById("kpi");
+      kpiEl.style.opacity = "0.5";
+
       if (isEdit) {
-        aggiornaRigaNelDom(STATO.editRowNum, dati);
-      } else {
-        const kpiEl = document.getElementById("kpi");
-        kpiEl.style.opacity = "0.5";
-        await caricaDashboard();
-        kpiEl.style.opacity = "1";
+        try { aggiornaRigaNelDom(rowNumSalvato, dati); } catch (e) {}
+      }
+
+      await caricaDashboard();
+      kpiEl.style.opacity = "1";
+
+      if (!isEdit) {
+        const ds = val("f_data");
+        const dsv = val("f_dipendente");
+        const fs = val("f_foglio");
+        resetForm();
+        setVal("f_data", ds);
+        setVal("f_dipendente", dsv);
+        setVal("f_foglio", fs);
       }
     } else {
       toast("❌ " + res.msg, "err");
@@ -800,6 +809,7 @@ async function salva() {
   } finally {
     btn.disabled = false;
     btn.innerHTML = orig;
+    STATO.editRowNum = null;
   }
 }
 
@@ -808,10 +818,10 @@ async function salva() {
  ************************************************************/
 function aggiornaRigaNelDom(rowNum, dati) {
   const editBtn = document.querySelector('.row-actions button[onclick*="modificaVoce(' + rowNum + ')"]');
-  if (!editBtn) { caricaDashboard(); return; }
+  if (!editBtn) { return; }
 
   const tr = editBtn.closest('tr');
-  if (!tr) { caricaDashboard(); return; }
+  if (!tr) { return; }
 
   const ordinario = Number(dati.ordinario) || 0;
   const straordFeriali = Number(dati.straordFeriali) || 0;
@@ -833,7 +843,7 @@ function aggiornaRigaNelDom(rowNum, dati) {
   }
 
   const tds = tr.querySelectorAll('td');
-  if (tds.length < 16) { caricaDashboard(); return; }
+  if (tds.length < 16) { return; }
 
   function setTd(idx, val) {
     if (tds[idx]) tds[idx].textContent = val;
@@ -865,9 +875,6 @@ function aggiornaRigaNelDom(rowNum, dati) {
   }, 800);
 }
 
-/************************************************************
- * RICALCOLA KPI DAL DOM
- ************************************************************/
 function ricalcolaKpiDaDom() {
   const rows = document.querySelectorAll('#tabellaVoci tbody tr');
   if (!rows.length) return;
@@ -904,7 +911,6 @@ function ricalcolaKpiDaDom() {
 
   document.getElementById("countVoci").textContent = numRighe + " voci";
 
-  // Aggiorna riga TOTALI (tfoot) - indici sfasati per colspan=3
   const tfootTr = document.querySelector('#tabellaVoci tfoot tr');
   if (tfootTr) {
     const td = tfootTr.querySelectorAll('td');
@@ -1340,20 +1346,11 @@ function updateThemeIcon(theme) {
 
 /************************************************************
  * REFRESH AUTOMATICO — Opzione C
- * Ricarica i dati quando l'app torna in primo piano
- * (riapertura dal task manager, ritorno da un'altra scheda)
- * + pulsante 🔄 manuale per refresh esplicito
  ************************************************************/
-
 let ULTIMO_REFRESH = 0;
-const INTERVALLO_MIN_REFRESH = 5000; // 5 secondi minimo tra due refresh automatici
+const INTERVALLO_MIN_REFRESH = 5000;
 
-/**
- * Refresh esplicito (click sul pulsante 🔄 nell'header)
- * Ignora il limite di tempo per garantire all'utente che funzioni
- */
 function refreshDashboard() {
-  // Feedback visivo: ruota l'icona
   const btn = document.getElementById("btnRefresh");
   if (btn) {
     const icon = btn.querySelector("svg");
@@ -1369,30 +1366,24 @@ function refreshDashboard() {
 
   ULTIMO_REFRESH = Date.now();
 
-  // Feedback visivo: KPI semi-trasparenti
   const kpiEl = document.getElementById("kpi");
   if (kpiEl) kpiEl.style.opacity = "0.5";
 
   caricaDashboard().then(function() {
     if (kpiEl) kpiEl.style.opacity = "1";
-  }).catch(function() {
+    toast("🔄 Dati aggiornati", "ok");
+  }).catch(function(err) {
     if (kpiEl) kpiEl.style.opacity = "1";
+    toast("❌ " + err.message, "err");
   });
 }
 
-/**
- * Auto-refresh quando l'app torna visibile
- * (l'utente riapre l'app dal task manager, cambia scheda e ritorna)
- */
 document.addEventListener("visibilitychange", function() {
   if (document.visibilityState === "visible") {
     const ora = Date.now();
-    // Ricarica solo se sono passati almeno 5 secondi dall'ultimo refresh
     if (ora - ULTIMO_REFRESH > INTERVALLO_MIN_REFRESH) {
       ULTIMO_REFRESH = ora;
-      // Aspetta 300ms per evitare di interrompere un'animazione in corso
       setTimeout(function() {
-        // Ricarica solo se l'utente è loggato e l'app è visibile
         if (STATO.token &&
             document.getElementById("appScreen").style.display !== "none") {
           caricaDashboard();
@@ -1402,10 +1393,6 @@ document.addEventListener("visibilitychange", function() {
   }
 });
 
-/**
- * Auto-refresh quando la finestra riceve il focus
- * (utile su desktop quando si passa da un'altra applicazione)
- */
 window.addEventListener("focus", function() {
   const ora = Date.now();
   if (ora - ULTIMO_REFRESH > INTERVALLO_MIN_REFRESH) {
