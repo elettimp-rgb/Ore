@@ -749,10 +749,8 @@ async function salva() {
       chiudiForm();
 
       if (isEdit) {
-        // ===== AGGIORNAMENTO LOCALE: solo la riga modificata =====
         aggiornaRigaNelDom(STATO.editRowNum, dati);
       } else {
-        // ===== AGGIUNTA: ricarica completa (riga nuova non in DOM) =====
         const kpiEl = document.getElementById("kpi");
         kpiEl.style.opacity = "0.5";
         await caricaDashboard();
@@ -879,18 +877,32 @@ function ricalcolaKpiDaDom() {
 
   document.getElementById("countVoci").textContent = numRighe + " voci";
 
+  // ============ AGGIORNA RIGA TOTALI (tfoot) ============
+  // Nel tfoot la prima cella ha colspan="3", quindi gli indici sono sfasati:
+  // td[0]  = "TOTALI" (colspan 3)
+  // td[1]  = ordinarie
+  // td[2]  = straord. feriale
+  // td[3]  = straord. festivo
+  // td[4]  = totale ore
+  // td[5]  = (vuoto - ore viaggio)
+  // td[6]  = km
+  // td[7]  = spese
+  // td[8]  = (vuoto, colspan 4)
+  // td[9]  = ferie
+  // td[10] = malattia
+  // td[11] = (vuoto - azioni)
   const tfootTr = document.querySelector('#tabellaVoci tfoot tr');
   if (tfootTr) {
-    const tfootTds = tfootTr.querySelectorAll('td');
-    if (tfootTds.length >= 15) {
-      if (tfootTds[3]) tfootTds[3].textContent = ordinarie;
-      if (tfootTds[4]) tfootTds[4].textContent = straordFeriali;
-      if (tfootTds[5]) tfootTds[5].textContent = straordFestivi;
-      if (tfootTds[6]) tfootTds[6].textContent = totaleOre;
-      if (tfootTds[8]) tfootTds[8].textContent = km;
-      if (tfootTds[9]) tfootTds[9].textContent = spese.toFixed(2);
-      if (tfootTds[13]) tfootTds[13].textContent = ferie;
-      if (tfootTds[14]) tfootTds[14].textContent = malattia;
+    const td = tfootTr.querySelectorAll('td');
+    if (td.length >= 11) {
+      if (td[1]) td[1].textContent = ordinarie;
+      if (td[2]) td[2].textContent = straordFeriali;
+      if (td[3]) td[3].textContent = straordFestivi;
+      if (td[4]) td[4].textContent = totaleOre;
+      if (td[6]) td[6].textContent = km;
+      if (td[7]) td[7].textContent = spese.toFixed(2);
+      if (td[9]) td[9].textContent = ferie;
+      if (td[10]) td[10].textContent = malattia;
     }
   }
 }
