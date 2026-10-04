@@ -153,14 +153,22 @@ body.light-theme .login-box {
   width: 72px;
   height: 72px;
   border-radius: 20px;
-  background: linear-gradient(135deg, #0891b2 0%, #22d3ee 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
   margin: 0 auto 20px;
-  box-shadow: 0 12px 40px -8px rgba(6, 182, 212, .6);
+  overflow: hidden;
+  background: transparent;
+  box-shadow: none;
 }
+
+.login-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
 .login-box h1 {
   margin: 0 0 8px;
   font-size: 1.6rem;
@@ -1446,3 +1454,16 @@ body.light-theme .mese-email-item .badge-corrente {
   color: #0e7490;
   border-color: rgba(8, 145, 178, .3);
 }
+
+/* Adatta le dimensioni su mobile */
+@media (max-width: 640px) {
+  .brand-logo {
+    width: 36px;
+    height: 36px;
+  }
+  .login-logo {
+    width: 64px;
+    height: 64px;
+  }
+}
+
