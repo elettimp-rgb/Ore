@@ -295,11 +295,16 @@
             <label>Data *</label>
             <input type="date" id="f_data" required>
           </div>
+
+          
           <div class="form-group">
-            <label>Dipendente *</label>
-            <input type="text" id="f_dipendente" list="dl_dipendenti" placeholder="Nome Cognome" required>
-            <datalist id="dl_dipendenti"></datalist>
-          </div>
+  <label>Dipendente *</label>
+  <select id="f_dipendente_select" style="display:none" onchange="onCambiaDipendente()"></select>
+  <input type="text" id="f_dipendente" list="dl_dipendenti" placeholder="Nome Cognome" required>
+  <datalist id="dl_dipendenti"></datalist>
+</div>
+
+          
         </div>
         <div class="section-title">Ore</div>
         <div class="grid-3">
