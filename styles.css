@@ -1588,3 +1588,64 @@ body.is-admin-principale .admin-email-section {
   cursor: not-allowed;
   background: var(--surface-3);
 }
+
+/* ============================================================
+ * WRAPPER TAB + PULSANTE EMAIL
+ * ============================================================ */
+.segmented-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.segmented-wrapper .segmented {
+  margin-bottom: 0;  /* rimuovi margine dal segmented interno */
+}
+
+/* ============================================================
+ * PULSANTE EMAIL IN ALTO A DESTRA
+ * ============================================================ */
+.btn-email-top {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  color: white;
+  border: none;
+  border-radius: var(--r);
+  font-size: .85rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  box-shadow: 0 4px 16px -4px rgba(16, 185, 129, .5);
+  transition: all var(--t-fast);
+  white-space: nowrap;
+}
+.btn-email-top:hover:not(:disabled) {
+  box-shadow: 0 6px 24px -4px rgba(16, 185, 129, .7);
+  transform: translateY(-1px);
+}
+.btn-email-top:active {
+  transform: scale(.98);
+}
+.btn-email-top:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+/* Nascondi il testo del pulsante su mobile per risparmiare spazio */
+@media (max-width: 640px) {
+  .btn-email-top span {
+    display: none;
+  }
+  .btn-email-top {
+    padding: 10px 12px;
+  }
+  .segmented-wrapper {
+    gap: 8px;
+  }
+}
