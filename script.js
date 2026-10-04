@@ -1337,3 +1337,82 @@ function updateThemeIcon(theme) {
     icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
   }
 }
+
+/************************************************************
+ * REFRESH AUTOMATICO — Opzione C
+ * Ricarica i dati quando l'app torna in primo piano
+ * (riapertura dal task manager, ritorno da un'altra scheda)
+ * + pulsante 🔄 manuale per refresh esplicito
+ ************************************************************/
+
+let ULTIMO_REFRESH = 0;
+const INTERVALLO_MIN_REFRESH = 5000; // 5 secondi minimo tra due refresh automatici
+
+/**
+ * Refresh esplicito (click sul pulsante 🔄 nell'header)
+ * Ignora il limite di tempo per garantire all'utente che funzioni
+ */
+function refreshDashboard() {
+  // Feedback visivo: ruota l'icona
+  const btn = document.getElementById("btnRefresh");
+  if (btn) {
+    const icon = btn.querySelector("svg");
+    if (icon) {
+      icon.style.transition = "transform 0.6s ease";
+      icon.style.transform = "rotate(360deg)";
+      setTimeout(function() {
+        icon.style.transition = "";
+        icon.style.transform = "";
+      }, 600);
+    }
+  }
+
+  ULTIMO_REFRESH = Date.now();
+
+  // Feedback visivo: KPI semi-trasparenti
+  const kpiEl = document.getElementById("kpi");
+  if (kpiEl) kpiEl.style.opacity = "0.5";
+
+  caricaDashboard().then(function() {
+    if (kpiEl) kpiEl.style.opacity = "1";
+  }).catch(function() {
+    if (kpiEl) kpiEl.style.opacity = "1";
+  });
+}
+
+/**
+ * Auto-refresh quando l'app torna visibile
+ * (l'utente riapre l'app dal task manager, cambia scheda e ritorna)
+ */
+document.addEventListener("visibilitychange", function() {
+  if (document.visibilityState === "visible") {
+    const ora = Date.now();
+    // Ricarica solo se sono passati almeno 5 secondi dall'ultimo refresh
+    if (ora - ULTIMO_REFRESH > INTERVALLO_MIN_REFRESH) {
+      ULTIMO_REFRESH = ora;
+      // Aspetta 300ms per evitare di interrompere un'animazione in corso
+      setTimeout(function() {
+        // Ricarica solo se l'utente è loggato e l'app è visibile
+        if (STATO.token &&
+            document.getElementById("appScreen").style.display !== "none") {
+          caricaDashboard();
+        }
+      }, 300);
+    }
+  }
+});
+
+/**
+ * Auto-refresh quando la finestra riceve il focus
+ * (utile su desktop quando si passa da un'altra applicazione)
+ */
+window.addEventListener("focus", function() {
+  const ora = Date.now();
+  if (ora - ULTIMO_REFRESH > INTERVALLO_MIN_REFRESH) {
+    ULTIMO_REFRESH = ora;
+    if (STATO.token &&
+        document.getElementById("appScreen").style.display !== "none") {
+      caricaDashboard();
+    }
+  }
+});
