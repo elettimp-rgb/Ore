@@ -666,16 +666,37 @@ function chiudiForm() {
   document.body.style.overflow = "";
 }
 
+
+
+
+
+
 async function modificaVoce(rowNum) {
   STATO.editRowNum = rowNum;
   document.getElementById("modalFormTitle").textContent = "Modifica voce";
-  const nomeFoglio = val("selettoreMese");
+
+  // Prende il foglio da più fonti possibili
+  let nomeFoglio = val("selettoreMese") || STATO.foglioAttivo || "";
+
+  if (!nomeFoglio) {
+    toast("Nessun foglio selezionato", "err");
+    return;
+  }
 
   try {
     const d = await callAPI("getRigaDettaglio", {
-      token: STATO.token, rowNum: rowNum, foglio: nomeFoglio
+      token: STATO.token,
+      rowNum: Number(rowNum),   // ← forza numero
+      foglio: nomeFoglio
     });
-    if (!d) { toast("Voce non trovata", "err"); return; }
+
+    if (!d) {
+      // Debug: mostra cosa ha risposto il server
+      console.error("getRigaDettaglio ha restituito null. rowNum:", rowNum, "foglio:", nomeFoglio);
+      toast("Voce non trovata (riga " + rowNum + ")", "err");
+      STATO.editRowNum = null;
+      return;
+    }
 
     setVal("f_foglio", nomeFoglio);
     setVal("f_data", d.data);
@@ -706,9 +727,19 @@ async function modificaVoce(rowNum) {
     document.getElementById("modalForm").classList.add("open");
     document.body.style.overflow = "hidden";
   } catch (err) {
+    console.error("Errore modificaVoce:", err);
     toast("Errore: " + err.message, "err");
+    STATO.editRowNum = null;
   }
 }
+
+
+
+
+
+
+
+
 
 async function salva() {
   const data = val("f_data");
