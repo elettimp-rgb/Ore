@@ -1569,3 +1569,22 @@ body.light-theme .log-item .log-azione { color: #0e7490; }
   max-height: 80px;
   overflow-y: auto;
 }
+
+/* ============================================================
+ * ADMIN SECONDARIO — Sezione email nascosta
+ * ============================================================ */
+.admin-email-section {
+  display: none; /* nascosto di default */
+}
+body.is-admin-principale .admin-email-section {
+  display: block;
+}
+
+/* ============================================================
+ * FORM SELECT RUOLO DISABLED
+ * ============================================================ */
+.form-group select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: var(--surface-3);
+}
