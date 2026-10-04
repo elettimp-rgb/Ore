@@ -41,6 +41,10 @@ function todayISO() {
   const d = new Date();
   return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
 }
+function valOrEmpty(v) {
+  if (v === null || v === undefined || v === "" || v === 0 || v === "0") return "";
+  return v;
+}
 
 function switchInner(name, el) {
   document.querySelectorAll(".segment").forEach(function(t) { t.classList.remove("active"); });
@@ -160,7 +164,6 @@ function mostraApp() {
   document.getElementById("loginScreen").style.display = "none";
   document.getElementById("appScreen").style.display = "block";
 
-  // Pulisci classi ruolo
   document.body.classList.remove("is-admin", "is-admin-principale", "is-admin-secondario", "is-utente");
 
   if (isAdminPrincipale()) {
@@ -177,39 +180,9 @@ function mostraApp() {
 
   document.getElementById("userBadge").textContent = STATO.user.nome + " • " + ruoloLabel;
 
-  console.log("[mostraApp] Ruolo:", STATO.user.ruolo, "AdminPrincipale:", STATO.user.adminPrincipale, "Classi body:", document.body.className);
-
   caricaFogli();
   caricaDipendenti();
   caricaMesiDisponibili();
-}
-
-/**
- * Gestisce la scelta "aggiungi nuovo dipendente" nella select.
- */
-function onCambiaDipendente() {
-  const sel = document.getElementById("f_dipendente_select");
-  if (!sel) return;
-
-  if (sel.value === "__nuovo__") {
-    const nuovoNome = prompt("Inserisci il nome del nuovo dipendente (es. Mario Rossi):");
-    if (nuovoNome && nuovoNome.trim()) {
-      const nome = nuovoNome.trim();
-      if (!STATO.dipendenti.includes(nome)) {
-        STATO.dipendenti.push(nome);
-        STATO.dipendenti.sort();
-      }
-      const opt = document.createElement("option");
-      opt.value = nome;
-      opt.textContent = nome;
-      const optNuovo = Array.from(sel.options).find(function(o) { return o.value === "__nuovo__"; });
-      if (optNuovo) sel.insertBefore(opt, optNuovo);
-      else sel.appendChild(opt);
-      sel.value = nome;
-    } else {
-      sel.value = "";
-    }
-  }
 }
 
 /************************************************************
@@ -746,11 +719,34 @@ function apriForm() {
   document.getElementById("modalForm").classList.add("open");
   document.body.style.overflow = "hidden";
 }
-
-
 function chiudiForm() {
   document.getElementById("modalForm").classList.remove("open");
   document.body.style.overflow = "";
+}
+
+function onCambiaDipendente() {
+  const sel = document.getElementById("f_dipendente_select");
+  if (!sel) return;
+
+  if (sel.value === "__nuovo__") {
+    const nuovoNome = prompt("Inserisci il nome del nuovo dipendente (es. Mario Rossi):");
+    if (nuovoNome && nuovoNome.trim()) {
+      const nome = nuovoNome.trim();
+      if (!STATO.dipendenti.includes(nome)) {
+        STATO.dipendenti.push(nome);
+        STATO.dipendenti.sort();
+      }
+      const opt = document.createElement("option");
+      opt.value = nome;
+      opt.textContent = nome;
+      const optNuovo = Array.from(sel.options).find(function(o) { return o.value === "__nuovo__"; });
+      if (optNuovo) sel.insertBefore(opt, optNuovo);
+      else sel.appendChild(opt);
+      sel.value = nome;
+    } else {
+      sel.value = "";
+    }
+  }
 }
 
 async function modificaVoce(rowNum) {
@@ -775,42 +771,44 @@ async function modificaVoce(rowNum) {
 
     setVal("f_foglio", nomeFoglio);
     setVal("f_data", d.data);
-    
+
     if (isAdmin()) {
-  const sel = document.getElementById("f_dipendente_select");
-  const exists = Array.from(sel.options).some(function(o) { return o.value === d.dipendente; });
-  if (!exists && d.dipendente) {
-    const opt = document.createElement("option");
-    opt.value = d.dipendente;
-    opt.textContent = d.dipendente;
-    const optNuovo = Array.from(sel.options).find(function(o) { return o.value === "__nuovo__"; });
-    if (optNuovo) sel.insertBefore(opt, optNuovo);
-    else sel.appendChild(opt);
-  }
-  sel.value = d.dipendente;
-} else {
-  setVal("f_dipendente", d.dipendente);
-}
-    setVal("f_ordinario", d.ordinario);
-    setVal("f_straordF", d.straordFeriali);
-    setVal("f_straordFest", d.straordFestivi);
-    setVal("f_oreViaggio", d.oreViaggio);
-    setVal("f_km", d.km);
-    setVal("f_spese", d.spese);
+      const sel = document.getElementById("f_dipendente_select");
+      const exists = Array.from(sel.options).some(function(o) { return o.value === d.dipendente; });
+      if (!exists && d.dipendente) {
+        const opt = document.createElement("option");
+        opt.value = d.dipendente;
+        opt.textContent = d.dipendente;
+        const optNuovo = Array.from(sel.options).find(function(o) { return o.value === "__nuovo__"; });
+        if (optNuovo) sel.insertBefore(opt, optNuovo);
+        else sel.appendChild(opt);
+      }
+      sel.value = d.dipendente;
+    } else {
+      setVal("f_dipendente", d.dipendente);
+    }
+
+    setVal("f_ordinario", valOrEmpty(d.ordinario));
+    setVal("f_straordF", valOrEmpty(d.straordFeriali));
+    setVal("f_straordFest", valOrEmpty(d.straordFestivi));
+    setVal("f_oreViaggio", valOrEmpty(d.oreViaggio));
+    setVal("f_km", valOrEmpty(d.km));
+    setVal("f_spese", valOrEmpty(d.spese));
+    setVal("f_ferie", valOrEmpty(d.ferie));
+    setVal("f_malattia", valOrEmpty(d.malattia));
+
     setVal("f_cantiere", d.cantiere);
     setVal("f_note", d.note);
-    setVal("f_ferie", d.ferie);
-    setVal("f_malattia", d.malattia);
 
-    const sel = document.getElementById("f_commessa");
-    const exists = Array.from(sel.options).some(function(o) { return o.value === d.commessa; });
-    if (exists) sel.value = d.commessa;
+    const selComm = document.getElementById("f_commessa");
+    const exists = Array.from(selComm.options).some(function(o) { return o.value === d.commessa; });
+    if (exists) selComm.value = d.commessa;
     else if (d.commessa) {
       const opt = document.createElement("option");
       opt.value = d.commessa;
       opt.textContent = "#" + d.commessa;
-      sel.insertBefore(opt, sel.firstChild);
-      sel.value = d.commessa;
+      selComm.insertBefore(opt, selComm.firstChild);
+      selComm.value = d.commessa;
     }
     setVal("f_committente", d.committente);
 
@@ -835,8 +833,6 @@ async function salva() {
 
   if (!data) { toast("Inserisci la data", "err"); return; }
   if (!dip) { toast("Inserisci il dipendente", "err"); return; }
-
-  
 
   let foglioDest = val("f_foglio") || val("selettoreMese") || STATO.foglioAttivo;
   if (!foglioDest) { toast("Nessun foglio selezionato", "err"); return; }
@@ -1006,7 +1002,6 @@ function resetForm() {
   const selDip = document.getElementById("f_dipendente_select");
   if (selDip) selDip.value = "";
 
-  setVal("f_ordinario", 8);
   STATO.editRowNum = null;
 }
 
@@ -1130,7 +1125,7 @@ async function creaNuovoMese() {
 }
 
 /************************************************************
- * ADMIN — apertura pannello
+ * ADMIN
  ************************************************************/
 function apriAdmin() {
   if (!isAdmin()) return;
