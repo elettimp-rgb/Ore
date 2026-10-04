@@ -51,10 +51,15 @@ function switchInner(name, el) {
 }
 
 function isAdminPrincipale() {
-  return STATO.user && STATO.user.ruolo === "admin" && STATO.user.adminPrincipale === true;
+  return STATO.user &&
+    STATO.user.ruolo === "admin" &&
+    (STATO.user.adminPrincipale === true || STATO.user.adminPrincipale === "TRUE");
 }
 function isAdminSecondario() {
-  return STATO.user && STATO.user.ruolo === "admin" && STATO.user.adminPrincipale !== true;
+  return STATO.user &&
+    STATO.user.ruolo === "admin" &&
+    STATO.user.adminPrincipale !== true &&
+    STATO.user.adminPrincipale !== "TRUE";
 }
 function isAdmin() {
   return STATO.user && STATO.user.ruolo === "admin";
@@ -155,21 +160,24 @@ function mostraApp() {
   document.getElementById("loginScreen").style.display = "none";
   document.getElementById("appScreen").style.display = "block";
 
-  // Classi body in base al ruolo
-  document.body.classList.remove("is-admin", "is-admin-principale", "is-admin-secondario");
+  // Pulisci classi ruolo
+  document.body.classList.remove("is-admin", "is-admin-principale", "is-admin-secondario", "is-utente");
 
   if (isAdminPrincipale()) {
     document.body.classList.add("is-admin", "is-admin-principale");
   } else if (isAdminSecondario()) {
     document.body.classList.add("is-admin", "is-admin-secondario");
+  } else {
+    document.body.classList.add("is-utente");
   }
 
-  // Badge utente
   let ruoloLabel = "Utente";
   if (isAdminPrincipale()) ruoloLabel = "👑 Admin Principale";
   else if (isAdminSecondario()) ruoloLabel = "🔧 Admin";
 
   document.getElementById("userBadge").textContent = STATO.user.nome + " • " + ruoloLabel;
+
+  console.log("[mostraApp] Ruolo:", STATO.user.ruolo, "AdminPrincipale:", STATO.user.adminPrincipale, "Classi body:", document.body.className);
 
   caricaFogli();
   caricaDipendenti();
@@ -752,10 +760,7 @@ async function salva() {
   if (!dip) { toast("Inserisci il dipendente", "err"); return; }
 
   let foglioDest = val("f_foglio") || val("selettoreMese") || STATO.foglioAttivo;
-  if (!foglioDest) {
-    toast("Nessun foglio selezionato", "err");
-    return;
-  }
+  if (!foglioDest) { toast("Nessun foglio selezionato", "err"); return; }
 
   const dati = {
     foglio: foglioDest,
@@ -1042,22 +1047,49 @@ async function creaNuovoMese() {
 }
 
 /************************************************************
- * ADMIN
+ * ADMIN — apertura pannello
  ************************************************************/
 function apriAdmin() {
-  if (!isAdminPrincipale()) return;
+  if (!isAdmin()) return;
+
   document.getElementById("modalAdmin").classList.add("open");
   document.body.style.overflow = "hidden";
 
-  callAPI("getEmailConfig", { token: STATO.token }).then(function(cfg) {
-    if (cfg.error) { toast(cfg.error, "err"); return; }
-    setVal("adm_email_dest", cfg.destinatari || "");
-    setVal("adm_email_ogg", cfg.oggetto || "");
-    setVal("adm_email_corpo", cfg.corpo || "");
-  }).catch(function() {});
+  if (isAdminPrincipale()) {
+    const emailSection = document.getElementById("adminEmailSection");
+    if (emailSection) emailSection.style.display = "block";
 
+    callAPI("getEmailConfig", { token: STATO.token }).then(function(cfg) {
+      if (cfg.error) { toast(cfg.error, "err"); return; }
+      setVal("adm_email_dest", cfg.destinatari || "");
+      setVal("adm_email_ogg", cfg.oggetto || "");
+      setVal("adm_email_corpo", cfg.corpo || "");
+    }).catch(function() {});
+  } else {
+    const emailSection = document.getElementById("adminEmailSection");
+    if (emailSection) emailSection.style.display = "none";
+  }
+
+  aggiornaFormUtente();
   caricaUtenti();
 }
+
+function aggiornaFormUtente() {
+  const selRuolo = document.getElementById("adm_user_ruolo");
+  if (!selRuolo) return;
+
+  if (isAdminPrincipale()) {
+    selRuolo.innerHTML =
+      '<option value="utente">Utente</option>' +
+      '<option value="admin">Amministratore (secondario)</option>';
+    selRuolo.disabled = false;
+  } else {
+    selRuolo.innerHTML = '<option value="utente">Utente</option>';
+    selRuolo.value = "utente";
+    selRuolo.disabled = true;
+  }
+}
+
 function chiudiAdmin() {
   document.getElementById("modalAdmin").classList.remove("open");
   document.body.style.overflow = "";
@@ -1083,14 +1115,24 @@ async function caricaUtenti() {
       return;
     }
     document.getElementById("listaUtenti").innerHTML = utenti.map(function(u) {
-      const badge = u.adminPrincipale ? ' <span class="badge-principale">👑 PRINCIPALE</span>' :
-                    (u.ruolo === "admin" ? ' <span class="badge-secondario">🔧 ADMIN</span>' : '');
+      let badge = "";
+      if (u.adminPrincipale) badge = ' <span class="badge-principale">👑 PRINCIPALE</span>';
+      else if (u.ruolo === "admin") badge = ' <span class="badge-secondario">🔧 ADMIN</span>';
+
+      const creatoDaLabel = (u.creatoDa && u.creatoDa !== STATO.user.email.toLowerCase() && u.creatoDa !== "system")
+        ? ' <span style="font-size:.68rem;color:#94a3b8">· creato da ' + esc(u.creatoDa) + '</span>'
+        : "";
+
+      const puoEliminare = !u.adminPrincipale && u.email !== STATO.user.email.toLowerCase();
+
       return '<div class="comm-item">' +
         '<div class="info">' +
           '<div class="num">' + esc(u.nome) + badge + '</div>' +
-          '<div class="desc">' + esc(u.email) + '</div>' +
+          '<div class="desc">' + esc(u.email) + creatoDaLabel + '</div>' +
         '</div>' +
-        (u.adminPrincipale ? '' : '<button class="btn-trash" onclick="eliminaUtenteAdmin(\'' + esc(u.email) + '\')" title="Elimina">🗑️</button>') +
+        (puoEliminare
+          ? '<button class="btn-trash" onclick="eliminaUtenteAdmin(\'' + esc(u.email) + '\')" title="Elimina">🗑️</button>'
+          : '') +
       '</div>';
     }).join("");
   } catch (e) {}
@@ -1102,8 +1144,14 @@ async function aggiungiUtenteAdmin() {
     password: val("adm_user_pwd"),
     ruolo: val("adm_user_ruolo")
   };
+
+  if (!isAdminPrincipale()) {
+    u.ruolo = "utente";
+  }
+
   if (!u.email) { toast("Email obbligatoria", "err"); return; }
   if (!u.password || u.password.length < 6) { toast("Password min 6 caratteri", "err"); return; }
+
   try {
     const res = await callAPI("aggiungiUtente", { token: STATO.token, dati: u });
     toast(res.ok ? "✅ " + res.msg : "❌ " + res.msg, res.ok ? "ok" : "err");
@@ -1124,7 +1172,7 @@ async function eliminaUtenteAdmin(email) {
 }
 
 /************************************************************
- * LOG ATTIVITÀ (admin principale)
+ * LOG ATTIVITÀ
  ************************************************************/
 function apriLog() {
   if (!isAdminPrincipale()) return;
@@ -1162,7 +1210,7 @@ async function caricaLog() {
 }
 
 /************************************************************
- * EMAIL — con modal scelta mese
+ * EMAIL
  ************************************************************/
 async function inviaEmail() {
   if (isAdminPrincipale()) {
