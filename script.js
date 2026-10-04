@@ -2,6 +2,7 @@
  * CONFIGURAZIONE
  ************************************************************/
 const API_URL = "https://ore.elettimp.workers.dev";
+const ADMIN_PRINCIPALE_EMAIL = "elettimp@gmail.com";
 
 let STATO = {
   token: localStorage.getItem("ore_token") || null,
@@ -49,8 +50,18 @@ function switchInner(name, el) {
   });
 }
 
+function isAdminPrincipale() {
+  return STATO.user && STATO.user.ruolo === "admin" && STATO.user.adminPrincipale === true;
+}
+function isAdminSecondario() {
+  return STATO.user && STATO.user.ruolo === "admin" && STATO.user.adminPrincipale !== true;
+}
+function isAdmin() {
+  return STATO.user && STATO.user.ruolo === "admin";
+}
+
 /************************************************************
- * API CALL — GET con query string (ANTI-CACHE)
+ * API CALL
  ************************************************************/
 async function callAPI(action, params) {
   params = params || {};
@@ -58,7 +69,6 @@ async function callAPI(action, params) {
   const queryParams = new URLSearchParams();
   queryParams.append("action", action);
   queryParams.append("payload", JSON.stringify(params));
-  // Anti-cache: parametro univoco ad ogni chiamata
   queryParams.append("_t", Date.now() + "_" + Math.random().toString(36).substring(7));
 
   const response = await fetch(API_URL + "?" + queryParams.toString(), {
@@ -145,10 +155,21 @@ function mostraApp() {
   document.getElementById("loginScreen").style.display = "none";
   document.getElementById("appScreen").style.display = "block";
 
-  if (STATO.user.ruolo === "admin") document.body.classList.add("is-admin");
+  // Classi body in base al ruolo
+  document.body.classList.remove("is-admin", "is-admin-principale", "is-admin-secondario");
 
-  document.getElementById("userBadge").textContent =
-    STATO.user.nome + " • " + (STATO.user.ruolo === "admin" ? "Amministratore" : "Utente");
+  if (isAdminPrincipale()) {
+    document.body.classList.add("is-admin", "is-admin-principale");
+  } else if (isAdminSecondario()) {
+    document.body.classList.add("is-admin", "is-admin-secondario");
+  }
+
+  // Badge utente
+  let ruoloLabel = "Utente";
+  if (isAdminPrincipale()) ruoloLabel = "👑 Admin Principale";
+  else if (isAdminSecondario()) ruoloLabel = "🔧 Admin";
+
+  document.getElementById("userBadge").textContent = STATO.user.nome + " • " + ruoloLabel;
 
   caricaFogli();
   caricaDipendenti();
@@ -239,8 +260,7 @@ function onFiltroPeriodoChange() {
     extra.style.display = "block";
     rigaDate.style.display = "none";
   }
-  document.getElementById("boxFiltroDip").style.display =
-    (STATO.user && STATO.user.ruolo === "admin") ? "block" : "none";
+  document.getElementById("boxFiltroDip").style.display = isAdmin() ? "block" : "none";
   caricaDashboard();
 }
 
@@ -272,8 +292,6 @@ async function caricaDashboard() {
   const nomeFoglio = val("selettoreMese") || STATO.foglioAttivo || null;
   const filtro = getFiltroCorrente();
 
-  console.log("[caricaDashboard] foglio=" + nomeFoglio);
-
   document.getElementById("kpi").innerHTML =
     '<div class="kpi" style="grid-column:1/-1;text-align:center"><div class="label">Caricamento</div><div class="value">…</div></div>';
 
@@ -294,8 +312,6 @@ async function caricaDashboard() {
       mostraErrore(res.error);
       return;
     }
-
-    console.log("[caricaDashboard] ricevute " + (res.rows ? res.rows.length : 0) + " righe");
 
     STATO.user = res.user;
     STATO.foglioAttivo = res.foglio;
@@ -326,7 +342,6 @@ async function caricaDashboard() {
     popolaSelectCommesse();
     aggiornaSelectFoglioForm(res.foglio);
   } catch (err) {
-    console.error("[caricaDashboard] errore:", err);
     mostraErrore("Errore: " + err.message);
   }
 }
@@ -380,7 +395,8 @@ function popolaFiltriDinamici() {
   const curComm = selComm.value;
   const optsComm = ['<option value="">Tutte</option>'];
   (STATO.commesseConfig || []).forEach(function(c) {
-    optsComm.push('<option value="' + esc(c.numero) + '">#' + esc(c.numero) + ' — ' + esc(c.committente) + '</option>');
+    const propLabel = (isAdminPrincipale() && c.proprietario) ? ' [' + c.proprietario + ']' : '';
+    optsComm.push('<option value="' + esc(c.numero) + '">#' + esc(c.numero) + ' — ' + esc(c.committente) + propLabel + '</option>');
   });
   selComm.innerHTML = optsComm.join("");
   if (curComm) selComm.value = curComm;
@@ -391,7 +407,7 @@ function popolaFiltriDinamici() {
  ************************************************************/
 function renderTabellaVoci(res) {
   document.getElementById("countVoci").textContent = res.rows.length + " voci";
-  const isAdmin = res.user && res.user.ruolo === "admin";
+  const isAdminU = isAdmin();
 
   if (!res.rows.length) {
     document.getElementById("tabellaVoci").innerHTML =
@@ -435,7 +451,7 @@ function renderTabellaVoci(res) {
     }
     html += '<td class="row-actions">';
     html += '<button class="edit" title="Modifica" onclick="modificaVoce(' + v.rowNum + ')">✏️</button>';
-    if (isAdmin) {
+    if (isAdminU) {
       html += '<button class="del" title="Cancella" onclick="cancellaVoce(' + v.rowNum + ')">🗑️</button>';
     }
     html += '</td>';
@@ -621,17 +637,18 @@ function renderCommesse(res) {
 }
 
 /************************************************************
- * FORM
+ * FORM RIGA
  ************************************************************/
 function popolaSelectCommesse() {
   const sel = document.getElementById("f_commessa");
   if (!sel) return;
   const opts = ['<option value="">— seleziona —</option>'];
   STATO.commesseConfig.forEach(function(c) {
+    const propLabel = (isAdminPrincipale() && c.proprietario) ? ' [' + c.proprietario + ']' : '';
     opts.push('<option value="' + esc(c.numero) +
       '" data-comm="' + esc(c.committente) +
       '" data-cant="' + esc(c.cantiere) + '">#' + esc(c.numero) +
-      ' — ' + esc(c.committente) +
+      ' — ' + esc(c.committente) + propLabel +
       (c.descrizione ? " (" + esc(c.descrizione) + ")" : "") + '</option>');
   });
   opts.push('<option value="__libera__">— inserisci liberamente —</option>');
@@ -686,13 +703,10 @@ async function modificaVoce(rowNum) {
 
   try {
     const d = await callAPI("getRigaDettaglio", {
-      token: STATO.token,
-      rowNum: Number(rowNum),
-      foglio: nomeFoglio
+      token: STATO.token, rowNum: Number(rowNum), foglio: nomeFoglio
     });
     if (!d) {
-      console.error("getRigaDettaglio ha restituito null. rowNum:", rowNum, "foglio:", nomeFoglio);
-      toast("Voce non trovata (riga " + rowNum + ")", "err");
+      toast("Voce non trovata", "err");
       STATO.editRowNum = null;
       return;
     }
@@ -726,7 +740,6 @@ async function modificaVoce(rowNum) {
     document.getElementById("modalForm").classList.add("open");
     document.body.style.overflow = "hidden";
   } catch (err) {
-    console.error("Errore modificaVoce:", err);
     toast("Errore: " + err.message, "err");
     STATO.editRowNum = null;
   }
@@ -781,21 +794,13 @@ async function salva() {
     if (res.ok) {
       toast("✅ " + res.msg, "ok");
       chiudiForm();
-
       const kpiEl = document.getElementById("kpi");
       kpiEl.style.opacity = "0.5";
-
-      if (isEdit) {
-        try { aggiornaRigaNelDom(rowNumSalvato, dati); } catch (e) {}
-      }
-
+      if (isEdit) { try { aggiornaRigaNelDom(rowNumSalvato, dati); } catch (e) {} }
       await caricaDashboard();
       kpiEl.style.opacity = "1";
-
       if (!isEdit) {
-        const ds = val("f_data");
-        const dsv = val("f_dipendente");
-        const fs = val("f_foglio");
+        const ds = val("f_data"), dsv = val("f_dipendente"), fs = val("f_foglio");
         resetForm();
         setVal("f_data", ds);
         setVal("f_dipendente", dsv);
@@ -813,15 +818,11 @@ async function salva() {
   }
 }
 
-/************************************************************
- * AGGIORNAMENTO LOCALE RIGA NEL DOM
- ************************************************************/
 function aggiornaRigaNelDom(rowNum, dati) {
   const editBtn = document.querySelector('.row-actions button[onclick*="modificaVoce(' + rowNum + ')"]');
-  if (!editBtn) { return; }
-
+  if (!editBtn) return;
   const tr = editBtn.closest('tr');
-  if (!tr) { return; }
+  if (!tr) return;
 
   const ordinario = Number(dati.ordinario) || 0;
   const straordFeriali = Number(dati.straordFeriali) || 0;
@@ -843,46 +844,24 @@ function aggiornaRigaNelDom(rowNum, dati) {
   }
 
   const tds = tr.querySelectorAll('td');
-  if (tds.length < 16) { return; }
-
-  function setTd(idx, val) {
-    if (tds[idx]) tds[idx].textContent = val;
-  }
-
-  setTd(0, meseNome);
-  setTd(1, dataFormattata);
-  setTd(2, dati.dipendente || "");
-  setTd(3, ordinario);
-  setTd(4, straordFeriali);
-  setTd(5, straordFestivi);
-  setTd(6, totale);
-  setTd(7, dati.oreViaggio || "");
-  setTd(8, dati.km || "");
-  setTd(9, dati.spese || "");
-  setTd(10, dati.commessa || "");
-  setTd(11, dati.committente || "");
-  setTd(12, dati.cantiere || "");
-  setTd(13, dati.note || "");
-  setTd(14, dati.ferie || "");
-  setTd(15, dati.malattia || "");
+  if (tds.length < 16) return;
+  function setTd(idx, val) { if (tds[idx]) tds[idx].textContent = val; }
+  setTd(0, meseNome); setTd(1, dataFormattata); setTd(2, dati.dipendente || "");
+  setTd(3, ordinario); setTd(4, straordFeriali); setTd(5, straordFestivi); setTd(6, totale);
+  setTd(7, dati.oreViaggio || ""); setTd(8, dati.km || ""); setTd(9, dati.spese || "");
+  setTd(10, dati.commessa || ""); setTd(11, dati.committente || "");
+  setTd(12, dati.cantiere || ""); setTd(13, dati.note || "");
+  setTd(14, dati.ferie || ""); setTd(15, dati.malattia || "");
 
   ricalcolaKpiDaDom();
-
-  tr.style.transition = "background .3s";
-  tr.style.background = "rgba(6, 182, 212, 0.15)";
-  setTimeout(function() {
-    tr.style.background = "";
-  }, 800);
 }
 
 function ricalcolaKpiDaDom() {
   const rows = document.querySelectorAll('#tabellaVoci tbody tr');
   if (!rows.length) return;
-
   let ordinarie = 0, straordFeriali = 0, straordFestivi = 0;
   let km = 0, spese = 0, ferie = 0, malattia = 0;
   const numRighe = rows.length;
-
   rows.forEach(function(tr) {
     const tds = tr.querySelectorAll('td');
     if (tds.length < 16) return;
@@ -894,9 +873,7 @@ function ricalcolaKpiDaDom() {
     ferie += Number(tds[14].textContent) || 0;
     malattia += Number(tds[15].textContent) || 0;
   });
-
   const totaleOre = ordinarie + straordFeriali + straordFestivi;
-
   document.getElementById("kpi").innerHTML = [
     kpiCard("Ore totali", totaleOre, ""),
     kpiCard("Ordinarie", ordinarie, "green"),
@@ -908,9 +885,7 @@ function ricalcolaKpiDaDom() {
     kpiCard("Malattia", malattia, "red"),
     kpiCard("Giorni", numRighe, "")
   ].join("");
-
   document.getElementById("countVoci").textContent = numRighe + " voci";
-
   const tfootTr = document.querySelector('#tabellaVoci tfoot tr');
   if (tfootTr) {
     const td = tfootTr.querySelectorAll('td');
@@ -961,7 +936,8 @@ function chiudiCommesse() {
 }
 async function caricaCommesse() {
   try {
-    const lista = await callAPI("getCommesse");
+    const lista = await callAPI("getCommesse", { token: STATO.token });
+    if (lista.error) { toast(lista.error, "err"); return; }
     STATO.commesseConfig = lista || [];
     if (!lista.length) {
       document.getElementById("listaCommesse").innerHTML =
@@ -970,9 +946,11 @@ async function caricaCommesse() {
     }
     document.getElementById("listaCommesse").innerHTML = lista.map(function(c) {
       const extra = [c.committente, c.cantiere].filter(Boolean).join(" • ");
+      const propLabel = (isAdminPrincipale() && c.proprietario) ?
+        ' <span class="badge-prop">👤 ' + esc(c.proprietario) + '</span>' : '';
       return '<div class="comm-item">' +
         '<div class="info">' +
-          '<div class="num">#' + esc(c.numero) + '</div>' +
+          '<div class="num">#' + esc(c.numero) + propLabel + '</div>' +
           '<div class="desc">' + esc(extra || "—") + (c.descrizione ? " — " + esc(c.descrizione) : "") + '</div>' +
         '</div>' +
         '<button class="btn-trash" onclick="eliminaCommessa(\'' + esc(c.numero) + '\')" title="Elimina">🗑️</button>' +
@@ -1067,7 +1045,7 @@ async function creaNuovoMese() {
  * ADMIN
  ************************************************************/
 function apriAdmin() {
-  if (!STATO.user || STATO.user.ruolo !== "admin") return;
+  if (!isAdminPrincipale()) return;
   document.getElementById("modalAdmin").classList.add("open");
   document.body.style.overflow = "hidden";
 
@@ -1105,12 +1083,14 @@ async function caricaUtenti() {
       return;
     }
     document.getElementById("listaUtenti").innerHTML = utenti.map(function(u) {
+      const badge = u.adminPrincipale ? ' <span class="badge-principale">👑 PRINCIPALE</span>' :
+                    (u.ruolo === "admin" ? ' <span class="badge-secondario">🔧 ADMIN</span>' : '');
       return '<div class="comm-item">' +
         '<div class="info">' +
-          '<div class="num">' + esc(u.nome) + ' <span style="font-size:.7rem;color:#64748b">(' + esc(u.ruolo) + ')</span></div>' +
+          '<div class="num">' + esc(u.nome) + badge + '</div>' +
           '<div class="desc">' + esc(u.email) + '</div>' +
         '</div>' +
-        '<button class="btn-trash" onclick="eliminaUtenteAdmin(\'' + esc(u.email) + '\')" title="Elimina">🗑️</button>' +
+        (u.adminPrincipale ? '' : '<button class="btn-trash" onclick="eliminaUtenteAdmin(\'' + esc(u.email) + '\')" title="Elimina">🗑️</button>') +
       '</div>';
     }).join("");
   } catch (e) {}
@@ -1144,28 +1124,60 @@ async function eliminaUtenteAdmin(email) {
 }
 
 /************************************************************
- * EMAIL — con modal di scelta mese
+ * LOG ATTIVITÀ (admin principale)
+ ************************************************************/
+function apriLog() {
+  if (!isAdminPrincipale()) return;
+  document.getElementById("modalLog").classList.add("open");
+  document.body.style.overflow = "hidden";
+  caricaLog();
+}
+function chiudiLog() {
+  document.getElementById("modalLog").classList.remove("open");
+  document.body.style.overflow = "";
+}
+async function caricaLog() {
+  try {
+    const lista = await callAPI("getLog", { token: STATO.token, limite: 200 });
+    if (lista.error) { toast(lista.error, "err"); return; }
+    if (!lista.length) {
+      document.getElementById("listaLog").innerHTML =
+        '<div class="empty" style="padding:20px"><div>Nessuna attività registrata</div></div>';
+      return;
+    }
+    document.getElementById("listaLog").innerHTML = lista.map(function(l) {
+      return '<div class="log-item">' +
+        '<div class="log-header">' +
+          '<span class="log-azione">' + esc(l.azione) + '</span>' +
+          '<span class="log-time">' + esc(l.timestamp) + '</span>' +
+        '</div>' +
+        '<div class="log-body">' +
+          '<div><strong>👤</strong> ' + esc(l.utente) + '</div>' +
+          (l.foglio ? '<div><strong>📄</strong> ' + esc(l.foglio) + (l.riga ? ' (riga ' + esc(l.riga) + ')' : '') + '</div>' : '') +
+          (l.dettagli ? '<div class="log-dettagli">' + esc(l.dettagli) + '</div>' : '') +
+        '</div>' +
+      '</div>';
+    }).join("");
+  } catch (e) {}
+}
+
+/************************************************************
+ * EMAIL — con modal scelta mese
  ************************************************************/
 async function inviaEmail() {
-  const isAdmin = STATO.user && STATO.user.ruolo === "admin";
-
-  if (isAdmin) {
-    const scelta = confirm("OK = invia a TUTTI i destinatari configurati\nAnnulla = invia solo a te");
-    EMAIL_STATO.mode = scelta ? "admin" : "proprie";
-  } else {
-    if (!confirm("Inviare le tue ore via email?")) return;
-    EMAIL_STATO.mode = "proprie";
+  if (isAdminPrincipale()) {
+    toast("L'admin principale non invia email, le riceve soltanto", "err");
+    return;
   }
 
+  if (!confirm("Inviare le tue ore all'admin principale (" + ADMIN_PRINCIPALE_EMAIL + ")?")) return;
+  EMAIL_STATO.mode = "proprie";
   apriEmailMese();
 }
 
 function apriEmailMese() {
   const fogli = STATO.fogliMesi || [];
-  if (!fogli.length) {
-    toast("Nessun foglio disponibile", "err");
-    return;
-  }
+  if (!fogli.length) { toast("Nessun foglio disponibile", "err"); return; }
 
   const foglioCorrente = val("selettoreMese") || STATO.foglioAttivo || fogli[0];
   EMAIL_STATO.foglioScelto = foglioCorrente;
@@ -1203,10 +1215,7 @@ function chiudiEmailMese() {
 }
 
 async function confermaInvioEmail() {
-  if (!EMAIL_STATO.foglioScelto) {
-    toast("Seleziona un mese", "err");
-    return;
-  }
+  if (!EMAIL_STATO.foglioScelto) { toast("Seleziona un mese", "err"); return; }
 
   const btn = document.getElementById("btnEmailConferma");
   btn.disabled = true;
@@ -1220,9 +1229,7 @@ async function confermaInvioEmail() {
       foglio: EMAIL_STATO.foglioScelto
     });
     toast(res.ok ? "✅ " + res.msg : "❌ " + res.msg, res.ok ? "ok" : "err");
-    if (res.ok) {
-      chiudiEmailMese();
-    }
+    if (res.ok) chiudiEmailMese();
   } catch (err) {
     toast("❌ " + err.message, "err");
   } finally {
@@ -1326,7 +1333,6 @@ function toggleTheme() {
   const newTheme = isLight ? "light" : "dark";
   try { localStorage.setItem("ore_theme", newTheme); } catch (e) {}
   updateThemeIcon(newTheme);
-
   const metaTheme = document.querySelector('meta[name="theme-color"]');
   if (metaTheme) {
     metaTheme.setAttribute("content", newTheme === "light" ? "#f1f5f9" : "#0f1420");
@@ -1336,7 +1342,6 @@ function toggleTheme() {
 function updateThemeIcon(theme) {
   const icon = document.getElementById("iconTheme");
   if (!icon) return;
-
   if (theme === "light") {
     icon.innerHTML = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
   } else {
@@ -1345,7 +1350,7 @@ function updateThemeIcon(theme) {
 }
 
 /************************************************************
- * REFRESH AUTOMATICO — Opzione C
+ * REFRESH AUTOMATICO
  ************************************************************/
 let ULTIMO_REFRESH = 0;
 const INTERVALLO_MIN_REFRESH = 5000;
@@ -1357,18 +1362,12 @@ function refreshDashboard() {
     if (icon) {
       icon.style.transition = "transform 0.6s ease";
       icon.style.transform = "rotate(360deg)";
-      setTimeout(function() {
-        icon.style.transition = "";
-        icon.style.transform = "";
-      }, 600);
+      setTimeout(function() { icon.style.transition = ""; icon.style.transform = ""; }, 600);
     }
   }
-
   ULTIMO_REFRESH = Date.now();
-
   const kpiEl = document.getElementById("kpi");
   if (kpiEl) kpiEl.style.opacity = "0.5";
-
   caricaDashboard().then(function() {
     if (kpiEl) kpiEl.style.opacity = "1";
     toast("🔄 Dati aggiornati", "ok");
@@ -1384,8 +1383,7 @@ document.addEventListener("visibilitychange", function() {
     if (ora - ULTIMO_REFRESH > INTERVALLO_MIN_REFRESH) {
       ULTIMO_REFRESH = ora;
       setTimeout(function() {
-        if (STATO.token &&
-            document.getElementById("appScreen").style.display !== "none") {
+        if (STATO.token && document.getElementById("appScreen").style.display !== "none") {
           caricaDashboard();
         }
       }, 300);
@@ -1397,8 +1395,7 @@ window.addEventListener("focus", function() {
   const ora = Date.now();
   if (ora - ULTIMO_REFRESH > INTERVALLO_MIN_REFRESH) {
     ULTIMO_REFRESH = ora;
-    if (STATO.token &&
-        document.getElementById("appScreen").style.display !== "none") {
+    if (STATO.token && document.getElementById("appScreen").style.display !== "none") {
       caricaDashboard();
     }
   }
