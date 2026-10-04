@@ -14,6 +14,11 @@ let STATO = {
   editRowNum: null
 };
 
+let EMAIL_STATO = {
+  mode: null,
+  foglioScelto: null
+};
+
 /************************************************************
  * UTILITY
  ************************************************************/
@@ -772,16 +777,10 @@ async function salva() {
  ************************************************************/
 function aggiornaRigaNelDom(rowNum, dati) {
   const editBtn = document.querySelector('.row-actions button[onclick*="modificaVoce(' + rowNum + ')"]');
-  if (!editBtn) {
-    caricaDashboard();
-    return;
-  }
+  if (!editBtn) { caricaDashboard(); return; }
 
   const tr = editBtn.closest('tr');
-  if (!tr) {
-    caricaDashboard();
-    return;
-  }
+  if (!tr) { caricaDashboard(); return; }
 
   const ordinario = Number(dati.ordinario) || 0;
   const straordFeriali = Number(dati.straordFeriali) || 0;
@@ -803,10 +802,7 @@ function aggiornaRigaNelDom(rowNum, dati) {
   }
 
   const tds = tr.querySelectorAll('td');
-  if (tds.length < 16) {
-    caricaDashboard();
-    return;
-  }
+  if (tds.length < 16) { caricaDashboard(); return; }
 
   function setTd(idx, val) {
     if (tds[idx]) tds[idx].textContent = val;
@@ -877,20 +873,7 @@ function ricalcolaKpiDaDom() {
 
   document.getElementById("countVoci").textContent = numRighe + " voci";
 
-  // ============ AGGIORNA RIGA TOTALI (tfoot) ============
-  // Nel tfoot la prima cella ha colspan="3", quindi gli indici sono sfasati:
-  // td[0]  = "TOTALI" (colspan 3)
-  // td[1]  = ordinarie
-  // td[2]  = straord. feriale
-  // td[3]  = straord. festivo
-  // td[4]  = totale ore
-  // td[5]  = (vuoto - ore viaggio)
-  // td[6]  = km
-  // td[7]  = spese
-  // td[8]  = (vuoto, colspan 4)
-  // td[9]  = ferie
-  // td[10] = malattia
-  // td[11] = (vuoto - azioni)
+  // Aggiorna riga TOTALI (tfoot) - indici sfasati per colspan=3
   const tfootTr = document.querySelector('#tabellaVoci tfoot tr');
   if (tfootTr) {
     const td = tfootTr.querySelectorAll('td');
@@ -1124,27 +1107,85 @@ async function eliminaUtenteAdmin(email) {
 }
 
 /************************************************************
- * EMAIL
+ * EMAIL — con modal di scelta mese
  ************************************************************/
 async function inviaEmail() {
   const isAdmin = STATO.user && STATO.user.ruolo === "admin";
-  let mode;
+
   if (isAdmin) {
     const scelta = confirm("OK = invia a TUTTI i destinatari configurati\nAnnulla = invia solo a te");
-    mode = scelta ? "admin" : "proprie";
+    EMAIL_STATO.mode = scelta ? "admin" : "proprie";
   } else {
     if (!confirm("Inviare le tue ore via email?")) return;
-    mode = "proprie";
+    EMAIL_STATO.mode = "proprie";
   }
 
-  const btn = document.getElementById("btnEmail");
+  apriEmailMese();
+}
+
+function apriEmailMese() {
+  const fogli = STATO.fogliMesi || [];
+  if (!fogli.length) {
+    toast("Nessun foglio disponibile", "err");
+    return;
+  }
+
+  const foglioCorrente = val("selettoreMese") || STATO.foglioAttivo || fogli[0];
+  EMAIL_STATO.foglioScelto = foglioCorrente;
+
+  const container = document.getElementById("listaMesiEmail");
+  container.innerHTML = fogli.map(function(f) {
+    const isSelected = (f === foglioCorrente);
+    const isCurrent = (f === foglioCorrente);
+    return '<button type="button" class="mese-email-item ' + (isSelected ? 'selected' : '') + '" ' +
+      'onclick="selezionaMeseEmail(\'' + esc(f).replace(/'/g, "\\'") + '\', this)">' +
+      '<span class="radio-circle"></span>' +
+      '<span class="mese-nome">' + esc(f) +
+        (isCurrent ? ' <span class="badge-corrente">corrente</span>' : '') +
+      '</span>' +
+      '</button>';
+  }).join("");
+
+  document.getElementById("modalEmailMese").classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+
+function selezionaMeseEmail(nomeFoglio, el) {
+  EMAIL_STATO.foglioScelto = nomeFoglio;
+  document.querySelectorAll("#listaMesiEmail .mese-email-item").forEach(function(item) {
+    item.classList.remove("selected");
+  });
+  if (el) el.classList.add("selected");
+}
+
+function chiudiEmailMese() {
+  document.getElementById("modalEmailMese").classList.remove("open");
+  document.body.style.overflow = "";
+  EMAIL_STATO.mode = null;
+  EMAIL_STATO.foglioScelto = null;
+}
+
+async function confermaInvioEmail() {
+  if (!EMAIL_STATO.foglioScelto) {
+    toast("Seleziona un mese", "err");
+    return;
+  }
+
+  const btn = document.getElementById("btnEmailConferma");
   btn.disabled = true;
   const orig = btn.innerHTML;
-  btn.innerHTML = '<span class="spinner"></span> Invio in corso...';
+  btn.innerHTML = '<span class="spinner"></span> Invio...';
 
   try {
-    const res = await callAPI("inviaEmail", { token: STATO.token, mode: mode });
+    const res = await callAPI("inviaEmail", {
+      token: STATO.token,
+      mode: EMAIL_STATO.mode,
+      foglio: EMAIL_STATO.foglioScelto
+    });
     toast(res.ok ? "✅ " + res.msg : "❌ " + res.msg, res.ok ? "ok" : "err");
+    if (res.ok) {
+      chiudiEmailMese();
+    }
   } catch (err) {
     toast("❌ " + err.message, "err");
   } finally {
