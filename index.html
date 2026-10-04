@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#0f172a">
+<meta name="theme-color" content="#0f1420">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Ore Elettra">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -17,7 +17,13 @@
 <!-- ==================== SCHERMATA LOGIN ==================== -->
 <div id="loginScreen" class="login-screen">
   <div class="login-box">
-    <div class="login-logo">📋</div>
+    <div class="login-logo">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+        <rect x="9" y="3" width="6" height="4" rx="1"/>
+        <path d="M9 12h6M9 16h4"/>
+      </svg>
+    </div>
     <h1>Ore Elettra</h1>
     <p class="login-sub">Accedi con le tue credenziali</p>
 
@@ -32,7 +38,14 @@
 
     <div id="login_error" class="login-error" style="display:none"></div>
 
-    <button class="btn btn-primary btn-block" id="btnLogin" onclick="faiLogin()">🔓 Accedi</button>
+    <button class="btn btn-primary btn-block" id="btnLogin" onclick="faiLogin()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+        <polyline points="10 17 15 12 10 7"/>
+        <line x1="15" y1="12" x2="3" y2="12"/>
+      </svg>
+      Accedi
+    </button>
 
     <p class="login-hint">Non hai le credenziali? Contatta l'amministratore.</p>
   </div>
@@ -44,7 +57,13 @@
   <header>
     <div class="header-content">
       <div class="brand">
-        <div class="brand-logo">📋</div>
+        <div class="brand-logo">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+            <rect x="9" y="3" width="6" height="4" rx="1"/>
+            <path d="M9 12h6M9 16h4"/>
+          </svg>
+        </div>
         <div class="brand-text">
           <h1>Ore Elettra</h1>
           <p id="userBadge">—</p>
@@ -52,8 +71,26 @@
       </div>
       <div class="header-actions">
         <span class="badge-foglio" id="foglioAttivoLabel">—</span>
-        <button id="btnInstall" class="btn-install" style="display:none" onclick="installaApp()" title="Installa app">📲 Installa</button>
-        <button class="btn-logout" onclick="faiLogout()" title="Logout">🚪</button>
+        <button id="btnTheme" class="btn-theme" onclick="toggleTheme()" title="Cambia tema">
+          <svg id="iconTheme" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+        <button id="btnInstall" class="btn-install" style="display:none" onclick="installaApp()" title="Installa app">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          <span>Installa</span>
+        </button>
+        <button class="btn-logout" onclick="faiLogout()" title="Logout">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+        </button>
       </div>
     </div>
   </header>
@@ -62,17 +99,39 @@
     <div class="toolbar-content">
       <select id="selettoreMese" onchange="caricaDashboard()"></select>
       <select id="filtroPeriodo" onchange="onFiltroPeriodoChange()">
-        <option value="tutto">📅 Tutto</option>
+        <option value="tutto">Tutto</option>
         <option value="questo_mese">Questo mese</option>
         <option value="mese_scorso">Mese scorso</option>
         <option value="ultimi_3">Ultimi 3 mesi</option>
         <option value="anno">Quest'anno</option>
-        <option value="custom">📆 Personalizzato…</option>
+        <option value="custom">Personalizzato…</option>
       </select>
-      <button class="btn-icon" onclick="apriMesi()" title="Gestisci mesi">📅</button>
-      <button class="btn-icon" onclick="apriCommesse()" title="Gestisci commesse">🏷️</button>
-      <button class="btn-icon admin-only" onclick="apriAdmin()" title="Pannello Admin">⚙️</button>
-      <button class="btn-icon primary" onclick="apriForm()" title="Nuova voce">➕</button>
+      <button class="btn-icon" onclick="apriMesi()" title="Gestisci mesi">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+      </button>
+      <button class="btn-icon" onclick="apriCommesse()" title="Gestisci commesse">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+          <line x1="7" y1="7" x2="7.01" y2="7"/>
+        </svg>
+      </button>
+      <button class="btn-icon admin-only" onclick="apriAdmin()" title="Pannello Admin">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </button>
+      <button class="btn-icon primary" onclick="apriForm()" title="Nuova voce">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+      </button>
     </div>
   </div>
 
@@ -102,7 +161,7 @@
           </select>
         </div>
       </div>
-      <button class="btn btn-secondary btn-sm" style="margin-top:10px" onclick="resetFiltri()">🔄 Azzera filtri</button>
+      <button class="btn btn-secondary btn-sm" style="margin-top:10px" onclick="resetFiltri()">Azzera filtri</button>
     </div>
   </div>
 
@@ -112,29 +171,68 @@
     </div>
 
     <div class="segmented">
-      <button class="segment active" onclick="switchInner('voci', this)">📋 Giorni</button>
-      <button class="segment" onclick="switchInner('dip', this)">👥 Dipendenti</button>
-      <button class="segment" onclick="switchInner('comm', this)">🏷️ Commesse</button>
+      <button class="segment active" onclick="switchInner('voci', this)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+          <polyline points="10 9 9 9 8 9"/>
+        </svg>
+        Voci
+      </button>
+      <button class="segment" onclick="switchInner('dip', this)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        Dipendenti
+      </button>
+      <button class="segment" onclick="switchInner('comm', this)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px">
+          <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+          <line x1="7" y1="7" x2="7.01" y2="7"/>
+        </svg>
+        Commesse
+      </button>
     </div>
 
     <div class="inner-view" id="inner-voci">
       <div class="card">
         <div class="card-header">
-          <h3>📋 Giorni del mese</h3>
+          <h3>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:6px">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+            </svg>
+            Voci del mese
+          </h3>
           <span class="count" id="countVoci">0</span>
         </div>
         <div class="card-body">
           <div class="tabella-wrap" id="tabellaVoci">
             <div class="empty"><div class="empty-icon">📊</div><div>Nessun dato</div></div>
           </div>
-          <div class="scroll-hint">👈 scorri lateralmente per vedere tutte le colonne</div>
+          <div class="scroll-hint">← scorri lateralmente per vedere tutte le colonne →</div>
         </div>
       </div>
     </div>
 
     <div class="inner-view" id="inner-dip" style="display:none">
       <div class="card">
-        <div class="card-header"><h3>👥 Riepilogo per dipendente</h3></div>
+        <div class="card-header">
+          <h3>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:6px">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+            </svg>
+            Riepilogo per dipendente
+          </h3>
+        </div>
         <div class="card-body" id="tblDipendenti">
           <div class="empty"><div class="empty-icon">👥</div><div>Nessun dato</div></div>
         </div>
@@ -143,7 +241,15 @@
 
     <div class="inner-view" id="inner-comm" style="display:none">
       <div class="card">
-        <div class="card-header"><h3>🏷️ Riepilogo per commessa</h3></div>
+        <div class="card-header">
+          <h3>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:6px">
+              <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+              <line x1="7" y1="7" x2="7.01" y2="7"/>
+            </svg>
+            Riepilogo per commessa
+          </h3>
+        </div>
         <div class="card-body" id="tblCommesse">
           <div class="empty"><div class="empty-icon">🏷️</div><div>Nessun dato</div></div>
         </div>
@@ -153,7 +259,13 @@
 
   <div class="email-bar">
     <div class="email-bar-inner">
-      <button id="btnEmail" onclick="inviaEmail()">✉️ Invia le tue ore via Email</button>
+      <button id="btnEmail" onclick="inviaEmail()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+          <polyline points="22,6 12,13 2,6"/>
+        </svg>
+        Invia le tue ore via Email
+      </button>
     </div>
   </div>
 
@@ -161,7 +273,7 @@
   <div class="modal-overlay" id="modalForm">
     <div class="modal">
       <div class="modal-header">
-        <h2 id="modalFormTitle">➕ Nuova voce</h2>
+        <h2 id="modalFormTitle">Nuova voce</h2>
         <button class="modal-close" onclick="chiudiForm()">×</button>
       </div>
       <div class="modal-body">
@@ -180,7 +292,7 @@
             <datalist id="dl_dipendenti"></datalist>
           </div>
         </div>
-        <div class="section-title">⏱️ Ore</div>
+        <div class="section-title">Ore</div>
         <div class="grid-3">
           <div class="form-group">
             <label>Ordinario</label>
@@ -209,7 +321,7 @@
           <label>Spese (€)</label>
           <input type="number" id="f_spese" min="0" step="0.01">
         </div>
-        <div class="section-title">🏷️ Commessa</div>
+        <div class="section-title">Commessa</div>
         <div class="form-group">
           <label>Commessa</label>
           <select id="f_commessa" onchange="autoFillCommessa()"></select>
@@ -228,7 +340,7 @@
           <label>Note</label>
           <textarea id="f_note" placeholder="Descrizione attività..."></textarea>
         </div>
-        <div class="section-title">🌴 Assenze</div>
+        <div class="section-title">Assenze</div>
         <div class="grid-2">
           <div class="form-group">
             <label>Ferie (h)</label>
@@ -241,8 +353,8 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="resetForm()">🔄 Pulisci</button>
-        <button class="btn btn-primary" id="btnSalva" onclick="salva()">💾 Salva</button>
+        <button class="btn btn-secondary" onclick="resetForm()">Pulisci</button>
+        <button class="btn btn-primary" id="btnSalva" onclick="salva()">Salva</button>
       </div>
     </div>
   </div>
@@ -251,11 +363,11 @@
   <div class="modal-overlay" id="modalCommesse">
     <div class="modal">
       <div class="modal-header">
-        <h2>🏷️ Gestione commesse</h2>
+        <h2>Gestione commesse</h2>
         <button class="modal-close" onclick="chiudiCommesse()">×</button>
       </div>
       <div class="modal-body">
-        <div class="section-title">➕ Nuova commessa</div>
+        <div class="section-title">Nuova commessa</div>
         <div class="grid-2">
           <div class="form-group">
             <label>Numero *</label>
@@ -274,8 +386,8 @@
           <label>Descrizione</label>
           <input type="text" id="c_descrizione" placeholder="Descrizione attività">
         </div>
-        <button class="btn btn-primary btn-block" onclick="salvaCommessa()">💾 Aggiungi commessa</button>
-        <div class="section-title" style="margin-top:24px">📋 Configurate</div>
+        <button class="btn btn-primary btn-block" onclick="salvaCommessa()">Aggiungi commessa</button>
+        <div class="section-title" style="margin-top:24px">Configurate</div>
         <div id="listaCommesse"></div>
       </div>
     </div>
@@ -285,13 +397,13 @@
   <div class="modal-overlay" id="modalMesi">
     <div class="modal">
       <div class="modal-header">
-        <h2>📅 Gestione mesi</h2>
+        <h2>Gestione mesi</h2>
         <button class="modal-close" onclick="chiudiMesi()">×</button>
       </div>
       <div class="modal-body">
-        <div class="section-title">📁 Fogli esistenti</div>
+        <div class="section-title">Fogli esistenti</div>
         <div id="listaFogli"></div>
-        <div class="section-title" style="margin-top:24px">➕ Crea nuovo foglio mese</div>
+        <div class="section-title" style="margin-top:24px">Crea nuovo foglio mese</div>
         <div class="form-group">
           <label>Mese</label>
           <select id="nuovoMeseSelect"></select>
@@ -300,7 +412,7 @@
           <label>Nome foglio</label>
           <input type="text" id="nuovoMeseNome" placeholder="Ore Ottobre 2026">
         </div>
-        <button class="btn btn-success btn-block" onclick="creaNuovoMese()">➕ Crea foglio</button>
+        <button class="btn btn-success btn-block" onclick="creaNuovoMese()">Crea foglio</button>
       </div>
     </div>
   </div>
@@ -309,11 +421,11 @@
   <div class="modal-overlay" id="modalAdmin">
     <div class="modal">
       <div class="modal-header">
-        <h2>⚙️ Pannello Amministratore</h2>
+        <h2>Pannello Amministratore</h2>
         <button class="modal-close" onclick="chiudiAdmin()">×</button>
       </div>
       <div class="modal-body">
-        <div class="section-title">✉️ Configurazione Email</div>
+        <div class="section-title">Configurazione Email</div>
         <div class="form-group">
           <label>Destinatari (separati da virgola)</label>
           <input type="text" id="adm_email_dest" placeholder="email1@example.com, email2@example.com">
@@ -326,9 +438,9 @@
           <label>Corpo del messaggio</label>
           <textarea id="adm_email_corpo" placeholder="In allegato il report delle ore."></textarea>
         </div>
-        <button class="btn btn-primary btn-block" onclick="salvaEmailAdmin()">💾 Salva configurazione email</button>
+        <button class="btn btn-primary btn-block" onclick="salvaEmailAdmin()">Salva configurazione email</button>
 
-        <div class="section-title" style="margin-top:24px">👥 Gestione Utenti</div>
+        <div class="section-title" style="margin-top:24px">Gestione Utenti</div>
         <div class="form-group">
           <label>Email</label>
           <input type="email" id="adm_user_email" placeholder="mario@example.com">
@@ -350,9 +462,9 @@
             </select>
           </div>
         </div>
-        <button class="btn btn-success btn-block" onclick="aggiungiUtenteAdmin()">➕ Aggiungi utente</button>
+        <button class="btn btn-success btn-block" onclick="aggiungiUtenteAdmin()">Aggiungi utente</button>
 
-        <div class="section-title" style="margin-top:24px">📋 Utenti configurati</div>
+        <div class="section-title" style="margin-top:24px">Utenti configurati</div>
         <div id="listaUtenti"></div>
       </div>
     </div>
