@@ -296,16 +296,16 @@ async function caricaDashboard() {
 
     const r = res.riepilogo;
     document.getElementById("kpi").innerHTML = [
-  kpiCard("Ore totali", r.totaleOre, ""),
-  kpiCard("Ordinarie", r.ordinarie, "green"),
-  kpiCard("Str. Feriale", r.straordFeriali, "orange"),
-  kpiCard("Str. Festivo", r.straordFestivi, "orange"),
-  kpiCard("Km", r.km, "purple"),
-  kpiCard("Spese", r.spese.toFixed(2), "slate", "€"),
-  kpiCard("Ferie", r.ferie, "red"),
-  kpiCard("Malattia", r.malattia, "red"),
-  kpiCard("Giorni", r.numRighe, "")
-].join("");
+      kpiCard("Ore totali", r.totaleOre, ""),
+      kpiCard("Ordinarie", r.ordinarie, "green"),
+      kpiCard("Str. Feriale", r.straordFeriali, "orange"),
+      kpiCard("Str. Festivo", r.straordFestivi, "orange"),
+      kpiCard("Km", r.km, "purple"),
+      kpiCard("Spese", r.spese.toFixed(2), "slate", "€"),
+      kpiCard("Ferie", r.ferie, "red"),
+      kpiCard("Malattia", r.malattia, "red"),
+      kpiCard("Giorni", r.numRighe, "")
+    ].join("");
 
     renderTabellaVoci(res);
     renderDipendenti(res);
@@ -430,7 +430,7 @@ function renderTabellaVoci(res) {
   });
 
   const r = res.riepilogo;
-  const totStyle = "background:#f8fafc;font-weight:800;color:#1e40af;border-top:2px solid #e2e8f0;";
+  const totStyle = "font-weight:800;color:var(--accent-light);border-top:2px solid var(--accent);";
   html += '</tbody><tfoot><tr>' +
     '<td colspan="3" style="' + totStyle + '">TOTALI</td>' +
     '<td class="num" style="' + totStyle + '">' + r.ordinarie + '</td>' +
@@ -450,7 +450,7 @@ function renderTabellaVoci(res) {
 }
 
 /************************************************************
- * RIEPILOGO DIPENDENTI (con tutte le colonne numeriche)
+ * RIEPILOGO DIPENDENTI
  ************************************************************/
 function renderDipendenti(res) {
   if (!res.perDipendente.length) {
@@ -461,7 +461,6 @@ function renderDipendenti(res) {
 
   const dip = res.perDipendente;
 
-  // Totali in fondo
   const tot = dip.reduce(function(acc, d) {
     acc.ordinario += d.ordinario;
     acc.straordFeriali += d.straordFeriali;
@@ -491,7 +490,7 @@ function renderDipendenti(res) {
       '<th style="text-align:right">Spese (€)</th>' +
       '<th style="text-align:right">Ferie</th>' +
       '<th style="text-align:right">Malattia</th>' +
-      '<th style="text-align:right">Voci</th>' +
+      '<th style="text-align:right">Giorni</th>' +
     '</tr></thead>' +
     '<tbody>' +
     dip.map(function(d) {
@@ -500,7 +499,7 @@ function renderDipendenti(res) {
         '<td class="num">' + d.ordinario + '</td>' +
         '<td class="num">' + d.straordFeriali + '</td>' +
         '<td class="num">' + d.straordFestivi + '</td>' +
-        '<td class="num" style="font-weight:800;color:#0891b2">' + d.totale + '</td>' +
+        '<td class="num" style="font-weight:800;color:var(--accent-light)">' + d.totale + '</td>' +
         '<td class="num">' + d.oreViaggio + '</td>' +
         '<td class="num">' + d.km + '</td>' +
         '<td class="num">' + d.spese.toFixed(2) + '</td>' +
@@ -515,7 +514,7 @@ function renderDipendenti(res) {
       '<td class="num">' + tot.ordinario + '</td>' +
       '<td class="num">' + tot.straordFeriali + '</td>' +
       '<td class="num">' + tot.straordFestivi + '</td>' +
-      '<td class="num" style="font-weight:800;color:#0891b2">' + tot.totale + '</td>' +
+      '<td class="num" style="font-weight:800">' + tot.totale + '</td>' +
       '<td class="num">' + tot.oreViaggio + '</td>' +
       '<td class="num">' + tot.km + '</td>' +
       '<td class="num">' + tot.spese.toFixed(2) + '</td>' +
@@ -525,11 +524,11 @@ function renderDipendenti(res) {
     '</tr></tfoot>' +
     '</table>' +
     '</div>' +
-    '<div class="scroll-hint">👈 scorri lateralmente per vedere tutte le colonne</div>';
+    '<div class="scroll-hint">← scorri lateralmente per vedere tutte le colonne →</div>';
 }
 
 /************************************************************
- * RIEPILOGO COMMESSE (con tutte le colonne numeriche)
+ * RIEPILOGO COMMESSE
  ************************************************************/
 function renderCommesse(res) {
   if (!res.perCommessa.length) {
@@ -570,17 +569,17 @@ function renderCommesse(res) {
       '<th style="text-align:right">Spese (€)</th>' +
       '<th style="text-align:right">Ferie</th>' +
       '<th style="text-align:right">Malattia</th>' +
-      '<th style="text-align:right">Voci</th>' +
+      '<th style="text-align:right">Giorni</th>' +
     '</tr></thead>' +
     '<tbody>' +
     comm.map(function(c) {
       return '<tr>' +
-        '<td><strong style="color:#0891b2">#' + esc(c.commessa) + '</strong></td>' +
+        '<td><strong style="color:var(--accent-light)">#' + esc(c.commessa) + '</strong></td>' +
         '<td>' + esc(c.committente || "—") + (c.cantiere ? ' <span class="comm-extra">' + esc(c.cantiere) + '</span>' : '') + '</td>' +
         '<td class="num">' + c.ordinario + '</td>' +
         '<td class="num">' + c.straordFeriali + '</td>' +
         '<td class="num">' + c.straordFestivi + '</td>' +
-        '<td class="num" style="font-weight:800;color:#0891b2">' + c.totale + '</td>' +
+        '<td class="num" style="font-weight:800;color:var(--accent-light)">' + c.totale + '</td>' +
         '<td class="num">' + c.oreViaggio + '</td>' +
         '<td class="num">' + c.km + '</td>' +
         '<td class="num">' + c.spese.toFixed(2) + '</td>' +
@@ -595,7 +594,7 @@ function renderCommesse(res) {
       '<td class="num">' + tot.ordinario + '</td>' +
       '<td class="num">' + tot.straordFeriali + '</td>' +
       '<td class="num">' + tot.straordFestivi + '</td>' +
-      '<td class="num" style="font-weight:800;color:#0891b2">' + tot.totale + '</td>' +
+      '<td class="num" style="font-weight:800">' + tot.totale + '</td>' +
       '<td class="num">' + tot.oreViaggio + '</td>' +
       '<td class="num">' + tot.km + '</td>' +
       '<td class="num">' + tot.spese.toFixed(2) + '</td>' +
@@ -605,7 +604,7 @@ function renderCommesse(res) {
     '</tr></tfoot>' +
     '</table>' +
     '</div>' +
-    '<div class="scroll-hint">👈 scorri lateralmente per vedere tutte le colonne</div>';
+    '<div class="scroll-hint">← scorri lateralmente per vedere tutte le colonne →</div>';
 }
 
 /************************************************************
@@ -649,7 +648,7 @@ function autoFillCommessa() {
 
 function apriForm() {
   STATO.editRowNum = null;
-  document.getElementById("modalFormTitle").textContent = "➕ Nuova voce";
+  document.getElementById("modalFormTitle").textContent = "Nuova voce";
   resetForm();
   if (STATO.foglioAttivo) setVal("f_foglio", STATO.foglioAttivo);
   setVal("f_data", todayISO());
@@ -664,7 +663,7 @@ function chiudiForm() {
 
 async function modificaVoce(rowNum) {
   STATO.editRowNum = rowNum;
-  document.getElementById("modalFormTitle").textContent = "✏️ Modifica voce";
+  document.getElementById("modalFormTitle").textContent = "Modifica voce";
   const nomeFoglio = val("selettoreMese");
 
   try {
@@ -745,7 +744,12 @@ async function salva() {
     if (res.ok) {
       toast("✅ " + res.msg, "ok");
       chiudiForm();
-      caricaDashboard();
+
+      const kpiEl = document.getElementById("kpi");
+      kpiEl.style.opacity = "0.5";
+
+      await caricaDashboard();
+      kpiEl.style.opacity = "1";
     } else {
       toast("❌ " + res.msg, "err");
     }
@@ -862,7 +866,7 @@ async function caricaFogliMesi() {
       const isAttivo = (f === STATO.foglioAttivo);
       return '<div class="comm-item">' +
         '<div class="info">' +
-          '<div class="num">' + esc(f) + (isAttivo ? ' <span style="color:#059669;font-size:.75rem">●</span>' : '') + '</div>' +
+          '<div class="num">' + esc(f) + (isAttivo ? ' <span style="color:#10b981;font-size:.75rem">●</span>' : '') + '</div>' +
           '<div class="desc">' + (isAttivo ? "Foglio attivo" : "Tocca per attivare") + '</div>' +
         '</div>' +
         (isAttivo ? "" : '<button class="btn btn-primary btn-sm" onclick="attivaFoglio(\'' + esc(f) + '\')">Attiva</button>') +
@@ -1082,8 +1086,6 @@ if (window.matchMedia("(display-mode: standalone)").matches || window.navigator.
   if (btn) btn.style.display = "none";
 }
 
-
-
 /************************************************************
  * TOGGLE TEMA CHIARO/SCURO
  ************************************************************/
@@ -1101,7 +1103,6 @@ function toggleTheme() {
   try { localStorage.setItem("ore_theme", newTheme); } catch (e) {}
   updateThemeIcon(newTheme);
 
-  // Cambia anche il theme-color della barra di stato
   const metaTheme = document.querySelector('meta[name="theme-color"]');
   if (metaTheme) {
     metaTheme.setAttribute("content", newTheme === "light" ? "#f1f5f9" : "#0f1420");
@@ -1113,10 +1114,8 @@ function updateThemeIcon(theme) {
   if (!icon) return;
 
   if (theme === "light") {
-    // Icona sole (per passare a dark)
     icon.innerHTML = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
   } else {
-    // Icona luna (per passare a light)
     icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
   }
 }
