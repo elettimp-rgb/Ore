@@ -734,22 +734,30 @@ async function salva() {
   const orig = btn.innerHTML;
   btn.innerHTML = '<span class="spinner"></span>Salvataggio...';
 
+  const isEdit = STATO.editRowNum !== null;
+
   try {
     let res;
-    if (STATO.editRowNum !== null) {
+    if (isEdit) {
       res = await callAPI("modificaRiga", { token: STATO.token, rowNum: STATO.editRowNum, dati: dati });
     } else {
       res = await callAPI("aggiungiRiga", { token: STATO.token, dati: dati });
     }
+
     if (res.ok) {
       toast("✅ " + res.msg, "ok");
       chiudiForm();
 
-      const kpiEl = document.getElementById("kpi");
-      kpiEl.style.opacity = "0.5";
-
-      await caricaDashboard();
-      kpiEl.style.opacity = "1";
+      if (isEdit) {
+        // ===== AGGIORNAMENTO LOCALE: solo la riga modificata =====
+        aggiornaRigaNelDom(STATO.editRowNum, dati);
+      } else {
+        // ===== AGGIUNTA: ricarica completa (riga nuova non in DOM) =====
+        const kpiEl = document.getElementById("kpi");
+        kpiEl.style.opacity = "0.5";
+        await caricaDashboard();
+        kpiEl.style.opacity = "1";
+      }
     } else {
       toast("❌ " + res.msg, "err");
     }
@@ -758,6 +766,132 @@ async function salva() {
   } finally {
     btn.disabled = false;
     btn.innerHTML = orig;
+  }
+}
+
+/************************************************************
+ * AGGIORNAMENTO LOCALE RIGA NEL DOM
+ ************************************************************/
+function aggiornaRigaNelDom(rowNum, dati) {
+  const editBtn = document.querySelector('.row-actions button[onclick*="modificaVoce(' + rowNum + ')"]');
+  if (!editBtn) {
+    caricaDashboard();
+    return;
+  }
+
+  const tr = editBtn.closest('tr');
+  if (!tr) {
+    caricaDashboard();
+    return;
+  }
+
+  const ordinario = Number(dati.ordinario) || 0;
+  const straordFeriali = Number(dati.straordFeriali) || 0;
+  const straordFestivi = Number(dati.straordFestivi) || 0;
+  const totale = ordinario + straordFeriali + straordFestivi;
+
+  let dataFormattata = dati.data;
+  if (dati.data && dati.data.indexOf("-") !== -1) {
+    const p = dati.data.split("-");
+    if (p.length === 3) dataFormattata = p[2] + "/" + p[1] + "/" + p[0];
+  }
+
+  const mesi = ["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno",
+                "Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"];
+  let meseNome = "";
+  if (dati.data) {
+    const p = dati.data.split("-");
+    if (p.length === 3) meseNome = mesi[Number(p[1]) - 1];
+  }
+
+  const tds = tr.querySelectorAll('td');
+  if (tds.length < 16) {
+    caricaDashboard();
+    return;
+  }
+
+  function setTd(idx, val) {
+    if (tds[idx]) tds[idx].textContent = val;
+  }
+
+  setTd(0, meseNome);
+  setTd(1, dataFormattata);
+  setTd(2, dati.dipendente || "");
+  setTd(3, ordinario);
+  setTd(4, straordFeriali);
+  setTd(5, straordFestivi);
+  setTd(6, totale);
+  setTd(7, dati.oreViaggio || "");
+  setTd(8, dati.km || "");
+  setTd(9, dati.spese || "");
+  setTd(10, dati.commessa || "");
+  setTd(11, dati.committente || "");
+  setTd(12, dati.cantiere || "");
+  setTd(13, dati.note || "");
+  setTd(14, dati.ferie || "");
+  setTd(15, dati.malattia || "");
+
+  ricalcolaKpiDaDom();
+
+  tr.style.transition = "background .3s";
+  tr.style.background = "rgba(6, 182, 212, 0.15)";
+  setTimeout(function() {
+    tr.style.background = "";
+  }, 800);
+}
+
+/************************************************************
+ * RICALCOLA KPI DAL DOM
+ ************************************************************/
+function ricalcolaKpiDaDom() {
+  const rows = document.querySelectorAll('#tabellaVoci tbody tr');
+  if (!rows.length) return;
+
+  let ordinarie = 0, straordFeriali = 0, straordFestivi = 0;
+  let km = 0, spese = 0, ferie = 0, malattia = 0;
+  const numRighe = rows.length;
+
+  rows.forEach(function(tr) {
+    const tds = tr.querySelectorAll('td');
+    if (tds.length < 16) return;
+    ordinarie += Number(tds[3].textContent) || 0;
+    straordFeriali += Number(tds[4].textContent) || 0;
+    straordFestivi += Number(tds[5].textContent) || 0;
+    km += Number(tds[8].textContent) || 0;
+    spese += Number(tds[9].textContent) || 0;
+    ferie += Number(tds[14].textContent) || 0;
+    malattia += Number(tds[15].textContent) || 0;
+  });
+
+  const totaleOre = ordinarie + straordFeriali + straordFestivi;
+
+  document.getElementById("kpi").innerHTML = [
+    kpiCard("Ore totali", totaleOre, ""),
+    kpiCard("Ordinarie", ordinarie, "green"),
+    kpiCard("Str. Feriale", straordFeriali, "orange"),
+    kpiCard("Str. Festivo", straordFestivi, "orange"),
+    kpiCard("Km", km, "purple"),
+    kpiCard("Spese", spese.toFixed(2), "slate", "€"),
+    kpiCard("Ferie", ferie, "red"),
+    kpiCard("Malattia", malattia, "red"),
+    kpiCard("Giorni", numRighe, "")
+  ].join("");
+
+  document.getElementById("countVoci").textContent = numRighe + " voci";
+
+  const tfootTr = document.querySelector('#tabellaVoci tfoot tr');
+  if (tfootTr) {
+    const tfootTds = tfootTr.querySelectorAll('td');
+    if (tfootTds.length >= 15) {
+      if (tfootTds[3]) tfootTds[3].textContent = ordinarie;
+      if (tfootTds[4]) tfootTds[4].textContent = straordFeriali;
+      if (tfootTds[5]) tfootTds[5].textContent = straordFestivi;
+      if (tfootTds[6]) tfootTds[6].textContent = totaleOre;
+      if (tfootTds[8]) tfootTds[8].textContent = km;
+      if (tfootTds[9]) tfootTds[9].textContent = spese.toFixed(2);
+      if (tfootTds[13]) tfootTds[13].textContent = ferie;
+      if (tfootTds[14]) tfootTds[14].textContent = malattia;
+    }
   }
 }
 
