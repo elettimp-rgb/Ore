@@ -415,7 +415,7 @@ function popolaFiltriDinamici() {
  * TABELLA VOCI
  ************************************************************/
 function renderTabellaVoci(res) {
-  document.getElementById("countVoci").textContent = res.rows.length + " voci";
+  document.getElementById("countVoci").textContent = res.rows.length + " Giorni";
   const isAdminU = isAdmin();
 
   if (!res.rows.length) {
@@ -965,7 +965,7 @@ function ricalcolaKpiDaDom() {
     kpiCard("Malattia", malattia, "red"),
     kpiCard("Giorni", numRighe, "")
   ].join("");
-  document.getElementById("countVoci").textContent = numRighe + " voci";
+  document.getElementById("countVoci").textContent = numRighe + " Giorni";
   const tfootTr = document.querySelector('#tabellaVoci tfoot tr');
   if (tfootTr) {
     const td = tfootTr.querySelectorAll('td');
