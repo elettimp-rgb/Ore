@@ -1198,3 +1198,126 @@ body.light-theme .email-bar {
     transition-duration: .01ms !important;
   }
 }
+
+/* ============================================================
+ * TOOLBAR MOBILE — layout a griglia
+ * ============================================================ */
+.select-mese-wrap {
+  flex: 2 1 auto;
+  min-width: 140px;
+}
+
+.select-mese {
+  width: 100%;
+}
+
+.select-periodo {
+  flex: 1 1 auto;
+  min-width: 110px;
+}
+
+@media (max-width: 640px) {
+  .toolbar-content {
+    display: grid !important;
+    grid-template-columns: 1fr auto auto auto auto !important;
+    grid-template-areas:
+      "mese mese btn1 btn2 btn3"
+      "periodo periodo periodo periodo periodo" !important;
+    gap: 8px !important;
+  }
+
+  .select-mese-wrap {
+    grid-area: mese;
+    min-width: 0 !important;
+  }
+
+  .select-periodo {
+    grid-area: periodo;
+    min-width: 0 !important;
+    margin-top: 4px;
+  }
+
+  .toolbar-content > .btn-icon:nth-of-type(1) { grid-column: 3; }
+  .toolbar-content > .btn-icon:nth-of-type(2) { grid-column: 4; }
+  .toolbar-content > .btn-icon.admin-only { grid-column: 3; grid-row: 2; display: none; }
+  body.is-admin .toolbar-content > .btn-icon.admin-only { display: inline-flex; grid-column: 3; grid-row: 2; }
+  .toolbar-content > .btn-icon.primary { grid-column: 5; grid-row: 1; }
+}
+
+/* ============================================================
+ * LISTA MESI PER EMAIL
+ * ============================================================ */
+.lista-mesi-email {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mese-email-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--surface-2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition: all var(--t-fast);
+  font-family: inherit;
+  font-size: .92rem;
+  color: var(--text);
+  text-align: left;
+  width: 100%;
+}
+.mese-email-item:hover {
+  border-color: var(--accent);
+  background: var(--surface-3);
+}
+.mese-email-item.selected {
+  border-color: var(--accent);
+  background: var(--accent-glow);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.mese-email-item .radio-circle {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all var(--t-fast);
+}
+.mese-email-item.selected .radio-circle {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+.mese-email-item.selected .radio-circle::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: white;
+}
+.mese-email-item .mese-nome {
+  flex: 1;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mese-email-item .badge-corrente {
+  font-size: .68rem;
+  font-weight: 700;
+  background: var(--accent-glow);
+  color: var(--accent-light);
+  border: 1px solid rgba(6, 182, 212, .3);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+body.light-theme .mese-email-item .badge-corrente {
+  background: rgba(8, 145, 178, .1);
+  color: #0e7490;
+  border-color: rgba(8, 145, 178, .3);
+}
