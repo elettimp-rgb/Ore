@@ -336,6 +336,7 @@ async function caricaDashboard() {
       kpiCard("Ordinarie", r.ordinarie, "green"),
       kpiCard("Str. Feriale", r.straordFeriali, "orange"),
       kpiCard("Str. Festivo", r.straordFestivi, "orange"),
+      kpiCard("Ore viaggio", r.oreViaggio || 0, "purple"),
       kpiCard("Km", r.km, "purple"),
       kpiCard("Spese", r.spese.toFixed(2), "slate", "€"),
       kpiCard("Ferie", r.ferie, "red"),
