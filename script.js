@@ -2,7 +2,7 @@
  * CONFIGURAZIONE
  ************************************************************/
 const API_URL = "https://ore.elettimp.workers.dev";
-const ADMIN_PRINCIPALE_EMAIL = "elettimp@gmail.com";
+
 
 let STATO = {
   token: localStorage.getItem("ore_token") || null,
@@ -1296,7 +1296,19 @@ async function inviaEmail() {
     return;
   }
 
-  if (!confirm("Inviare le tue ore all'admin principale (" + ADMIN_PRINCIPALE_EMAIL + ")?")) return;
+  // Leggi i destinatari configurati dal server
+  let destinatariLabel = "amministratore";
+  try {
+    const cfg = await callAPI("getEmailDestinatari", { token: STATO.token });
+    if (cfg && cfg.destinatari) {
+      destinatariLabel = cfg.destinatari;
+    }
+  } catch (e) {
+    // Se fallisce, usa un messaggio generico
+  }
+
+  if (!confirm("Inviare le tue ore a:\n\n" + destinatariLabel + "?")) return;
+
   EMAIL_STATO.mode = "proprie";
   apriEmailMese();
 }
