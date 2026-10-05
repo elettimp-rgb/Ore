@@ -30,7 +30,7 @@ function toast(msg, tipo) {
 }
 function val(id) { const el = document.getElementById(id); return el ? el.value : ""; }
 function numVal(id) { const v = val(id); return v === "" ? "" : Number(v); }
-function setVal(id, v) { const el = (id); if (el) el.value = v; }
+function setVal(id, v) { const el = document.getElementById(id); if (el) el.value = v; }
 function esc(s) {
   return String(s == null ? "" : s).replace(/[&<>"']/g, function(c) {
     return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
@@ -948,7 +948,7 @@ function ricalcolaKpiDaDom() {
     ordinarie += Number(tds[3].textContent) || 0;
     straordFeriali += Number(tds[4].textContent) || 0;
     straordFestivi += Number(tds[5].textContent) || 0;
-    oreViaggio += Number(tds[7].textContent) || 0;   // ← colonna H
+    oreViaggio += Number(tds[7].textContent) || 0;
     km += Number(tds[8].textContent) || 0;
     spese += Number(tds[9].textContent) || 0;
     ferie += Number(tds[14].textContent) || 0;
@@ -967,7 +967,23 @@ function ricalcolaKpiDaDom() {
     kpiCard("Malattia", malattia, "red"),
     kpiCard("Giorni", numRighe, "")
   ].join("");
-  ...
+
+  document.getElementById("countVoci").textContent = numRighe + " Giorni";
+
+  const tfootTr = document.querySelector('#tabellaVoci tfoot tr');
+  if (tfootTr) {
+    const td = tfootTr.querySelectorAll('td');
+    if (td.length >= 11) {
+      if (td[1]) td[1].textContent = ordinarie;
+      if (td[2]) td[2].textContent = straordFeriali;
+      if (td[3]) td[3].textContent = straordFestivi;
+      if (td[4]) td[4].textContent = totaleOre;
+      if (td[6]) td[6].textContent = km;
+      if (td[7]) td[7].textContent = spese.toFixed(2);
+      if (td[9]) td[9].textContent = ferie;
+      if (td[10]) td[10].textContent = malattia;
+    }
+  }
 }
 
 async function cancellaVoce(rowNum) {
@@ -1396,7 +1412,6 @@ document.getElementById("login_email").addEventListener("keypress", function(e) 
   if (e.key === "Enter") document.getElementById("login_password").focus();
 });
 
-
 /************************************************************
  * PULSANTE INSTALLA APP (PWA)
  ************************************************************/
@@ -1517,36 +1532,27 @@ window.addEventListener("focus", function() {
   }
 });
 
-
 /************************************************************
  * AUTO-UPDATE SERVICE WORKER
  * Rileva quando c'è una nuova versione e ricarica la pagina
  ************************************************************/
 if ("serviceWorker" in navigator) {
-  // Registra il service worker e gestisci gli aggiornamenti
   window.addEventListener("load", function() {
     navigator.serviceWorker.register("/Ore/sw.js").then(function(registration) {
-      // Controlla aggiornamenti ogni 60 secondi
       setInterval(function() {
         registration.update();
       }, 60000);
 
-      // Quando trova un aggiornamento...
       registration.addEventListener("updatefound", function() {
         const newWorker = registration.installing;
         if (!newWorker) return;
 
         newWorker.addEventListener("statechange", function() {
           if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
-            // C'è una nuova versione pronta
             console.log("[SW] Nuova versione disponibile, ricarico...");
-
-            // Mostra un toast all'utente
             if (typeof toast === "function") {
               toast("🔄 Aggiornamento in corso...", "ok");
             }
-
-            // Ricarica dopo 1 secondo
             setTimeout(function() {
               window.location.reload();
             }, 1000);
@@ -1557,7 +1563,6 @@ if ("serviceWorker" in navigator) {
       console.warn("[SW] Errore registrazione:", err);
     });
 
-    // Quando il SW prende il controllo, ricarica (una sola volta)
     let refreshing = false;
     navigator.serviceWorker.addEventListener("controllerchange", function() {
       if (refreshing) return;
@@ -1566,7 +1571,3 @@ if ("serviceWorker" in navigator) {
     });
   });
 }
-
-
-
-
