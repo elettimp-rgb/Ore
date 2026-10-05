@@ -31,7 +31,7 @@ function toast(msg, tipo) {
 }
 function val(id) { const el = document.getElementById(id); return el ? el.value : ""; }
 function numVal(id) { const v = val(id); return v === "" ? "" : Number(v); }
-function setVal(id, v) { const el = document.getElementById(id); if (el) el.value = v; }
+function setVal(id, v) { const el = (id); if (el) el.value = v; }
 function esc(s) {
   return String(s == null ? "" : s).replace(/[&<>"']/g, function(c) {
     return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
@@ -940,7 +940,7 @@ function ricalcolaKpiDaDom() {
   const rows = document.querySelectorAll('#tabellaVoci tbody tr');
   if (!rows.length) return;
   let ordinarie = 0, straordFeriali = 0, straordFestivi = 0;
-  let km = 0, spese = 0, ferie = 0, malattia = 0;
+  let oreViaggio = 0, km = 0, spese = 0, ferie = 0, malattia = 0;
   const numRighe = rows.length;
   rows.forEach(function(tr) {
     const tds = tr.querySelectorAll('td');
@@ -948,6 +948,7 @@ function ricalcolaKpiDaDom() {
     ordinarie += Number(tds[3].textContent) || 0;
     straordFeriali += Number(tds[4].textContent) || 0;
     straordFestivi += Number(tds[5].textContent) || 0;
+    oreViaggio += Number(tds[7].textContent) || 0;   // ← colonna H
     km += Number(tds[8].textContent) || 0;
     spese += Number(tds[9].textContent) || 0;
     ferie += Number(tds[14].textContent) || 0;
@@ -959,27 +960,14 @@ function ricalcolaKpiDaDom() {
     kpiCard("Ordinarie", ordinarie, "green"),
     kpiCard("Str. Feriale", straordFeriali, "orange"),
     kpiCard("Str. Festivo", straordFestivi, "orange"),
+    kpiCard("Ore viaggio", oreViaggio, "purple"),
     kpiCard("Km", km, "purple"),
     kpiCard("Spese", spese.toFixed(2), "slate", "€"),
     kpiCard("Ferie", ferie, "red"),
     kpiCard("Malattia", malattia, "red"),
     kpiCard("Giorni", numRighe, "")
   ].join("");
-  document.getElementById("countVoci").textContent = numRighe + " Giorni";
-  const tfootTr = document.querySelector('#tabellaVoci tfoot tr');
-  if (tfootTr) {
-    const td = tfootTr.querySelectorAll('td');
-    if (td.length >= 11) {
-      if (td[1]) td[1].textContent = ordinarie;
-      if (td[2]) td[2].textContent = straordFeriali;
-      if (td[3]) td[3].textContent = straordFestivi;
-      if (td[4]) td[4].textContent = totaleOre;
-      if (td[6]) td[6].textContent = km;
-      if (td[7]) td[7].textContent = spese.toFixed(2);
-      if (td[9]) td[9].textContent = ferie;
-      if (td[10]) td[10].textContent = malattia;
-    }
-  }
+  ...
 }
 
 async function cancellaVoce(rowNum) {
