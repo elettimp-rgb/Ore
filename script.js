@@ -1538,3 +1538,56 @@ window.addEventListener("focus", function() {
     }
   }
 });
+
+
+/************************************************************
+ * AUTO-UPDATE SERVICE WORKER
+ * Rileva quando c'è una nuova versione e ricarica la pagina
+ ************************************************************/
+if ("serviceWorker" in navigator) {
+  // Registra il service worker e gestisci gli aggiornamenti
+  window.addEventListener("load", function() {
+    navigator.serviceWorker.register("/Ore/sw.js").then(function(registration) {
+      // Controlla aggiornamenti ogni 60 secondi
+      setInterval(function() {
+        registration.update();
+      }, 60000);
+
+      // Quando trova un aggiornamento...
+      registration.addEventListener("updatefound", function() {
+        const newWorker = registration.installing;
+        if (!newWorker) return;
+
+        newWorker.addEventListener("statechange", function() {
+          if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+            // C'è una nuova versione pronta
+            console.log("[SW] Nuova versione disponibile, ricarico...");
+
+            // Mostra un toast all'utente
+            if (typeof toast === "function") {
+              toast("🔄 Aggiornamento in corso...", "ok");
+            }
+
+            // Ricarica dopo 1 secondo
+            setTimeout(function() {
+              window.location.reload();
+            }, 1000);
+          }
+        });
+      });
+    }).catch(function(err) {
+      console.warn("[SW] Errore registrazione:", err);
+    });
+
+    // Quando il SW prende il controllo, ricarica (una sola volta)
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener("controllerchange", function() {
+      if (refreshing) return;
+      refreshing = true;
+      window.location.reload();
+    });
+  });
+}
+
+
+
