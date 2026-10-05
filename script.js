@@ -1408,16 +1408,6 @@ document.getElementById("login_email").addEventListener("keypress", function(e) 
   if (e.key === "Enter") document.getElementById("login_password").focus();
 });
 
-/************************************************************
- * SERVICE WORKER (PWA)
- ************************************************************/
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", function() {
-    navigator.serviceWorker.register("/Ore/sw.js").catch(function(err) {
-      console.warn("SW non registrato:", err);
-    });
-  });
-}
 
 /************************************************************
  * PULSANTE INSTALLA APP (PWA)
