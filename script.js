@@ -415,7 +415,7 @@ function popolaFiltriDinamici() {
  * TABELLA VOCI
  ************************************************************/
 function renderTabellaVoci(res) {
-  document.getElementById("countVoci").textContent = res.rows.length + " Giorni";
+  document.getElementById("countVoci").textContent = res.rows.length + " Voci";
   const isAdminU = isAdmin();
 
   if (!res.rows.length) {
